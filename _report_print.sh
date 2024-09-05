@@ -12,9 +12,9 @@ fi
 # Set hw information.
 PROGNAME=$(basename $0)
 
-HW_LIST="./sample_hw_info.txt"
-STUDENT_LIST="./sample_student_list.txt"
-STUDENT_LIST_SUBMITTED="./sample_student_list_submitted.txt"
+HW_LIST="./hw_info.txt"
+STUDENT_LIST="./student_list.txt"
+STUDENT_LIST_SUBMITTED="./student_list_submitted.txt"
 
 declare -a HW_INFO
 while read value; do
@@ -48,7 +48,7 @@ usage (){
 print_result (){
     printf "\n## Result\n"
     echo '```'
-    cat "./outputs/sample_${1}/sample_${1}_result.txt"
+    cat "./outputs/${1}/${1}_result.json"
     echo '```'
 }
 
@@ -56,16 +56,16 @@ print_result (){
 print_zip_ls (){
     printf "\n## Inside .zip\n"
     echo '```'
-    unzip -l "./student_submission/sample_${1}.zip"
+    unzip -l "./student_submission/${1}.zip"
     echo '```'
 }
 
 # input prob_num student_id
 print_source_code (){
     echo "### problem-${1} submitted source code"
-    if [[ -f "./student_submission/sample_${2}/sample_${HW_NAME}_${1}_${2}.cpp" ]]; then
+    if [[ -f "./student_submission/${2}/${HW_NAME}_${1}_${2}.cpp" ]]; then
         echo '```c++'
-        cat "./student_submission/sample_${2}/sample_${HW_NAME}_${1}_${2}.cpp"
+        cat "./student_submission/${2}/${HW_NAME}_${1}_${2}.cpp"
         echo " "
         echo '```'
     else
@@ -76,9 +76,9 @@ print_source_code (){
 # input prob_num case_num student_id
 print_compile_code (){
     echo "### problem-${1}-case-${2} compiled code"
-    if [[ -f "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp" ]]; then
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp" ]]; then
         echo '```c++'
-        cat "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp"
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp"
         echo " "
         echo '```'  
     else
@@ -89,9 +89,9 @@ print_compile_code (){
 # input prob_num case_num student_id
 print_compile_result (){
     echo "### problem-${1}-case-${2} compiled result"
-    if [[ -f "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt" ]]; then
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt" ]]; then
         echo '```'
-        cat "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt"
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt"
         echo " "
         echo '```'
     else
@@ -102,9 +102,9 @@ print_compile_result (){
 # input prob_num case_num student_id
 print_output_result (){
     echo "### problem-${1}-case-${2} output result"
-    if [[ -f "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_output.txt" ]]; then
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output.txt" ]]; then
         echo '```'
-        cat "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_output.txt"
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output.txt"
         echo " "
         echo '```'
     else
@@ -115,9 +115,9 @@ print_output_result (){
 # input prob_num case_num student_id
 print_output_diff_result (){
     echo "### problem-${1}-case-${2} output diff result"
-    if [[ -f "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt" ]]; then
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt" ]]; then
         echo '```'
-        cat "./outputs/sample_${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt"
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt"
         echo " "
         echo '```'
     else
@@ -141,7 +141,7 @@ STUDENT_ID=${1}
 if [ $(echo "$STUDENT_ID" | grep -E '^[0-9]{9}' | wc -w) -eq 0 ]; then # student_id length is not valid
     echo "${PROGNAME}: E: Invalid student_id length." >&2
     exit 1
-elif [ $(grep "${STUDENT_ID}" ./sample_student_list.txt | wc -w) -eq 0 ]; then # student_id is not in list
+elif [ $(grep "${STUDENT_ID}" ./student_list.txt | wc -w) -eq 0 ]; then # student_id is not in list
     echo "${PROGNAME}: E: Invalid student_id. Does not exist in student list." >&2
     exit 1
 fi
@@ -154,7 +154,7 @@ fi
 printf "# $STUDENT_ID $HW_NAME scoring report\n\n" >> $report_file
 
 # print result
-if [ $(grep "${STUDENT_ID}" ./sample_student_list_submitted.txt | wc -w) -eq 0 ]; then
+if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
     printf "$STUDENT_ID did not submitted .zip file.\n" >> $report_file
 
 else

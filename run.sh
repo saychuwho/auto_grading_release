@@ -5,18 +5,18 @@
 # 0. set hw informations / check if sample.sh already executed
 # Prevent running sample.sh when it already executed.
 PROGNAME=$(basename $0)
-if [ -f "./.samplelock" ]; then
-    echo "$PROGNAME: $PROGNAME already executed. Run ./sample_reset.sh to reset." >&2
+if [ -f "./.runlock" ]; then
+    echo "$PROGNAME: $PROGNAME already executed. Run ./reset.sh to reset." >&2
     exit 1
 fi
 
 # make lockfile
-> ".samplelock"
+> ".runlock"
 
 # Set hw information.
-HW_LIST="./sample_hw_info.txt"
-STUDENT_LIST="./sample_student_list.txt"
-STUDENT_LIST_SUBMITTED="./sample_student_list_submitted.txt"
+HW_LIST="./hw_info.txt"
+STUDENT_LIST="./student_list.txt"
+STUDENT_LIST_SUBMITTED="./student_list_submitted.txt"
 
 declare -a HW_INFO
 while read value; do
@@ -60,16 +60,16 @@ printf "\n1. Unzip submissions\n"
 
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
-    unzip_file="./student_submission/sample_${tmp_sid}.zip"
+    unzip_file=./student_submission/${HW_NAME}_*_${tmp_sid}.zip
 
     printf ">> student id : ${tmp_sid}\n"
 
     if [ -f $unzip_file ]; then
-        unzip "$unzip_file" -d "./student_submission/sample_${tmp_sid}" > /dev/null
-        printf "${tmp_sid}\n" >> "./sample_student_list_submitted.txt"
+        unzip "$unzip_file" -d "./student_submission/${tmp_sid}" > /dev/null
+        printf "${tmp_sid}\n" >> "./student_list_submitted.txt"
         printf ">>> unzip success\n"
     else
-        printf "${tmp_sid}\n" >> "./sample_student_list_not_submitted.txt"
+        printf "${tmp_sid}\n" >> "./student_list_not_submitted.txt"
         printf ">>> no zip file submitted\n"
     fi
 
@@ -82,17 +82,17 @@ printf "\n2. combine submission and cases\n"
 
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
-    mkdir "./outputs/sample_${tmp_sid}"
+    mkdir "./outputs/${tmp_sid}"
 
     # copy student submission to make case main
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
-        submission_file="./student_submission/sample_${tmp_sid}/sample_${HW_NAME}_${prob_name}_${tmp_sid}.cpp"
+        submission_file=./student_submission/${tmp_sid}/${HW_NAME}_${prob_name}_${tmp_sid}_*_${tmp_sid}.cpp
         
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-            output_file="./outputs/sample_${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}.cpp"
-            grading_case="./grading_cases/sample_${HW_NAME}_${prob_name}_case_${case_num}.cpp"
+            output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}.cpp"
+            grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
             
             if [ -f $submission_file ]; then
                 cat "${submission_file}" >> "${output_file}"
@@ -126,8 +126,8 @@ while read sid; do
             
             printf ">>> case ${case_num} > "
 
-            grading_case="./grading_cases/sample_${HW_NAME}_${prob_name}_case_${case_num}.output"
-            output_file="./outputs/sample_${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
+            grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.output"
+            output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
             
             if [ -f "${output_file}.cpp" ]; then
                 g++ -o "${output_file}.out" "${output_file}.cpp" > "${output_file}_compile_result.txt" 2>&1
@@ -152,8 +152,6 @@ done < $STUDENT_LIST_SUBMITTED
 
 
 
-# 4. score with outputs
-
 printf "\n4. score using outputs\n"
 
 while read sid; do
@@ -161,49 +159,60 @@ while read sid; do
 
     printf "> student id: ${tmp_sid}\n"
 
-    result_txt="./outputs/sample_${tmp_sid}/sample_${tmp_sid}_result.txt"
-    # printf "student id: ${tmp_sid}\n" >> "$result_txt"
+    result_json="./outputs/${tmp_sid}/${tmp_sid}_result.json"
+    # printf "student id: ${tmp_sid}\n" >> "$result_json"
     
+    printf "{\n" >> $result_json
+
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
 
-        for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
+        output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_1_${tmp_sid}"
+        if [ ! -f "${output_file}_compile_result.txt" ]; then
+            printf "\"${prob_name}\" : \"file-not-submitted\",\n" >> "$result_json"
+        else
+            printf "\"${prob_name}\": \"file-submitted\",\n" >> "$result_json"
+        
 
-            output_file="./outputs/sample_${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
-            
-            if [ ! -f "${output_file}_compile_result.txt" ]; then
-                printf "${prob_name}-case-${case_num}: file-not-submitted\n" >> "$result_txt"
-            elif [ "$(cat ${output_file}_compile_result.txt | wc -l)" -ge 1 ]; then
-                printf "${prob_name}-case-${case_num}: compile-error\n" >> "$result_txt"
-            elif [ "$(cat ${output_file}_output_diff.txt | wc -l)" -ge 1 ]; then
-                printf "${prob_name}-case-${case_num}: fail\n" >> "$result_txt"
-            else
-                printf "${prob_name}-case-${case_num}: pass\n" >> "$result_txt"
-            fi
+            for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
 
-        done
+                output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
+                
+                if [ "$(cat ${output_file}_compile_result.txt | wc -l)" -ge 1 ]; then
+                    printf "\"${prob_name}-case-${case_num}\" : \"compile-error\",\n" >> "$result_json"
+                elif [ "$(cat ${output_file}_output_diff.txt | wc -l)" -ge 1 ]; then
+                    printf "\"${prob_name}-case-${case_num}\" : \"fail\",\n" >> "$result_json"
+                else
+                    printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"
+                fi
+
+            done
+        fi
 
     done
+    printf "\"dummy\" : \"dummy\"\n" >> "$result_json"
+    printf "}\n" >> "$result_json"
+
 done < $STUDENT_LIST_SUBMITTED
 
 
 
-# 5. Print Reports using sample_print.sh
+# 5. Print Reports using print.sh
 
-printf "\n5. Print reports using sample_print.sh\n"
+printf "\n5. Print reports using _report_print.sh\n"
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
     printf "> student id: ${tmp_sid}\n"
-    ./sample_print.sh $tmp_sid
+    ./_report_print.sh $tmp_sid
 done < $STUDENT_LIST
 
 
 # 6. Score student's submission based on result file and make one result.csv
 
 printf "\n6. Score student submission based on result file and make one result.csv\n"
-python sample_grade.py
+python _result_score.py
 
 
 printf "\n<<< FINISHED >>>\n"

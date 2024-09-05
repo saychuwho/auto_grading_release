@@ -3,7 +3,7 @@
 # make grading cases outline : make grading cases outline .cpp files
 
 # Set hw information.
-HW_LIST="./sample_hw_info.txt"
+HW_LIST="./hw_info.txt"
 
 declare -a HW_INFO
 while read value; do

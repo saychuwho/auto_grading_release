@@ -3,7 +3,7 @@
 # make grading cases output : make grading cases .out / .output using answer .cpp
 
 # Set hw information.
-HW_LIST="./sample_hw_info.txt"
+HW_LIST="./hw_info.txt"
 
 declare -a HW_INFO
 while read value; do
