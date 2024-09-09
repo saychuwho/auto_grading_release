@@ -3,8 +3,8 @@
 # sample print : print final score, test case, difference when sample.sh run
 
 # if sample.sh does not run, it should not be run.
-if [ ! -f "./.samplelock" ]; then
-    echo "E: Run ./sample.sh first"
+if [ ! -f "./.runlock" ]; then
+    echo "E: Run ./run.sh first"
     exit 1
 fi
 

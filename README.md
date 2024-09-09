@@ -2,7 +2,7 @@
 
 DGIST CSE-201 Object Oriented Programming 수업 Assignment 채점에 사용되는 자동 채점 프로그램입니다.
 
-bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경에서 동작합니다. 
+bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경에서 동작합니다.
 
 릴리즈 버전입니다. 
 
@@ -18,14 +18,13 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## How to use
 
-1. `git`, `zip`, and `unzip`을 설치합니다.
+1. 각 assignment에 맞는 release를 다운로드 받은 후, 압축해제를 합니다.
+
+2. `git`, `zip`, and `unzip`을 설치합니다.
 ```bash
 sudo apt install git zip unzip
 ```
-2. 이 리포지토리를 클론합니다.
-```bash
-git clone https://github.com/saychuwho/auto_grading.git
-```
+
 3. 스크립트에 실행 권한을 다음과 같이 줍니다.
 ```bash
 chmod 755 ./run.sh
