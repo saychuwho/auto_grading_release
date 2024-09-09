@@ -4,7 +4,8 @@
 # when string uses wildcard, I marked it as 'USING WILDCARD'
 
 
-# 0. set hw informations / check if sample.sh already executed
+# 0. Pre steps 
+# set hw informations / check if sample.sh already executed
 # Prevent running sample.sh when it already executed.
 PROGNAME=$(basename $0)
 if [ -f "./.runlock" ]; then
