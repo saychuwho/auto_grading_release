@@ -56,7 +56,7 @@ print_result (){
 print_zip_ls (){
     printf "\n## Inside .zip\n"
     echo '```'
-    unzip -l "./student_submission/${1}.zip"
+    unzip -l ./student_submission/${HW_NAME}_*_${1}.zip
     echo '```'
 }
 

@@ -51,7 +51,7 @@ _EOF_
 }
 
 # Make json file outline
-JSON_FILE="./sample_hw_info_score.json"
+JSON_FILE="./hw_info_score.json"
 
 if [[ -f $JSON_FILE ]]; then
     rm $JSON_FILE
