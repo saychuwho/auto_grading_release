@@ -3,7 +3,8 @@
 .vscode/
 
 tmp*
-.samplelock
+.runlock
+*.zip
 
 # Exceptions
 

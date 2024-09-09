@@ -26,5 +26,8 @@ rm *_submitted.txt
 rm "./result.csv"
 rm "./result_score.csv"
 
+# remove log
+rm "./run_log.txt"
+
 # remove .samplelock
 rm "./.runlock"

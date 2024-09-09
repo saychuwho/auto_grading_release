@@ -60,42 +60,45 @@ print_zip_ls (){
     echo '```'
 }
 
-# input prob_num student_id
+# input prob_name student_id
 print_source_code (){
-    echo "### problem-${1} submitted source code"
-    if [[ -f "./student_submission/${2}/${HW_NAME}_${1}_${2}.cpp" ]]; then
+    echo "### submitted problem-${1} source code"
+    submission_file_name=$(ls ./student_submission/${2}/ | grep -E "_${1}_")
+    submission_file="./student_submission/${2}/${submission_file_name}"
+
+    if [[ -f $submission_file ]]; then
         echo '```c++'
-        cat "./student_submission/${2}/${HW_NAME}_${1}_${2}.cpp"
+        cat $submission_file
         echo " "
         echo '```'
     else
-        echo "no problem-${1} submitted source code."
+        echo "no submitted problem-${1} source code."
     fi
 }
 
 # input prob_num case_num student_id
 print_compile_code (){
-    echo "### problem-${1}-case-${2} compiled code"
+    echo "### compiled problem-${1}-case-${2} code"
     if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp" ]]; then
         echo '```c++'
         cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}.cpp"
         echo " "
         echo '```'  
     else
-        echo "no problem-${1}-case-${2} compiled code."
+        echo "no compiled problem-${1}-case-${2} code."
     fi
 }
 
 # input prob_num case_num student_id
 print_compile_result (){
-    echo "### problem-${1}-case-${2} compiled result"
+    echo "###  compiled problem-${1}-case-${2} result"
     if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt" ]]; then
         echo '```'
         cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_compile_result.txt"
         echo " "
         echo '```'
     else
-        echo "no problem-${1}-case-${2} compiled result"
+        echo "no compiled problem-${1}-case-${2} compiled result"
     fi
 }
 
