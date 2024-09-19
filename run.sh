@@ -88,7 +88,7 @@ while read sid; do
     printf ">> student id : ${tmp_sid}\n" >> $LOG_FILE
 
     if [ -f $unzip_file ]; then
-        unzip "$unzip_file" -d "./student_submission/${tmp_sid}" > /dev/null
+        unzip -O UTF-8 -o "$unzip_file" -d "./student_submission/${tmp_sid}" > /dev/null
         printf "${tmp_sid}\n" >> "./student_list_submitted.txt" 
         printf ">>> unzip success\n" >> $LOG_FILE
     else
@@ -116,18 +116,53 @@ while read sid; do
         submission_file_name=$(ls ./student_submission/${tmp_sid}/ | grep -E "_${prob_name}_")
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
         
+        # alter submission_file when student submitted files inside folder
+        is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
+        if [ $is_alter -gt 0 ]; then
+            alter_submission_folder_name=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
+            alter_submission_file_name=$(ls ./student_submission/${tmp_sid}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
+            alter_submission_file="./student_submission/${tmp_sid}/${alter_submission_folder_name}/${alter_submission_file_name}"
+        fi
+        
         printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
 
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
             output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}.cpp"
             grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
             
-            if [ -f $submission_file ]; then
+
+            # alter submission_file when student submitted files inside folder
+            if [ $is_alter -gt 0 ]; then
+                echo ">> ${HW_NAME}_${prob_name}: file submitted" >> $LOG_FILE
+
+                # add header file if there are no header
+                is_header=$(cat $alter_submission_file | grep '#include' | wc -l)
+                if [ $is_header -lt 1 ]; then
+                    prob_header="./grading_cases/${HW_NAME}_${prob_name}_header.cpp"
+                    cat "$prob_header" >> "$output_file"
+                fi
+
+                cat "${alter_submission_file}" >> "${output_file}"
+                printf "\n" >> "${output_file}"
+                cat "${grading_case}" >> "${output_file}"
+            
+            # normal case
+            elif [ -f $submission_file ]; then
+
+                # add header file if there are no header
+                is_header=$(cat $submission_file | grep '#include' | wc -l)
+                if [ $is_header -lt 1 ]; then
+                    prob_header="./grading_cases/${HW_NAME}_${prob_name}_header.cpp"
+                    cat "$prob_header" >> "$output_file"
+                fi
+
                 echo ">> ${HW_NAME}_${prob_name}: file submitted" >> $LOG_FILE
 
                 cat "${submission_file}" >> "${output_file}"
                 printf "\n" >> "${output_file}"
                 cat "${grading_case}" >> "${output_file}"
+
+            
             else
                 echo ">> ${HW_NAME}_${prob_name}: file not submitted" >> $LOG_FILE
             fi
@@ -160,7 +195,7 @@ while read sid; do
             
             printf ">>> case ${case_num} > " >> $LOG_FILE
 
-            grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.output"
+            grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output.txt"
             output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
             
             if [ -f "${output_file}.cpp" ]; then
@@ -252,7 +287,7 @@ done < $STUDENT_LIST
 printf "\n6. Score student submission based on result file and make one result.csv\n"
 printf "\n6. Score student submission based on result file and make one result.csv\n" >> $LOG_FILE
 
-python _result_score.py
+python3 _result_score.py
 
 
 printf "\n<<< FINISHED >>>\n"

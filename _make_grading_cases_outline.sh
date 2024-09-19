@@ -30,6 +30,8 @@ for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
     prob_name="${HW_PROB[prob_num]}"
     case_len="${HW_PROB_CASE[prob_num]}"
 
+    > "./graing_cases/${HW_NAME}_${prob_name}_header.cpp"
+
     for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
         > "./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
         > "./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_answer.cpp"

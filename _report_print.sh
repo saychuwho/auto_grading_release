@@ -66,7 +66,20 @@ print_source_code (){
     submission_file_name=$(ls ./student_submission/${2}/ | grep -E "_${1}_")
     submission_file="./student_submission/${2}/${submission_file_name}"
 
-    if [[ -f $submission_file ]]; then
+    # alter submission_file when student submitted files inside folder
+    is_alter=$(ls ./student_submission/${2} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
+    if [ $is_alter -gt 0 ]; then
+        alter_submission_folder_name=$(ls ./student_submission/${2} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
+        alter_submission_file_name=$(ls ./student_submission/${2}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
+        alter_submission_file="./student_submission/${2}/${alter_submission_folder_name}/${alter_submission_file_name}"
+    fi
+
+    if [ $is_alter -gt 0 ]; then
+        echo '```c++'
+        cat $alter_submission_file
+        echo " "
+        echo '```'
+    elif [[ -f $submission_file ]]; then
         echo '```c++'
         cat $submission_file
         echo " "
@@ -149,7 +162,12 @@ elif [ $(grep "${STUDENT_ID}" ./student_list.txt | wc -w) -eq 0 ]; then # studen
     exit 1
 fi
 
-report_file="./reports/${STUDENT_ID}.md"
+report_file="./reports/submitted/${STUDENT_ID}.md"
+
+if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
+    report_file="./reports/not_submitted/${STUDENT_ID}.md"
+fi
+
 if [[ -f $report_file ]]; then
     rm $report_file
 fi
