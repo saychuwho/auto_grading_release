@@ -5,6 +5,7 @@
 tmp*
 .runlock
 *.zip
+*.md
 
 # Exceptions
 

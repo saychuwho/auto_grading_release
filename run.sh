@@ -74,7 +74,7 @@ for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
 done
 
 
-# 1. unzip sample submission
+# 1. unzip sample submission & change submitted files into correct format files
 
 printf "\n1. Unzip submissions\n"
 printf "\n1. Unzip submissions\n" >> $LOG_FILE
@@ -82,21 +82,70 @@ printf "\n1. Unzip submissions\n" >> $LOG_FILE
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
-    # USING WILDCARD
-    unzip_file=./student_submission/${HW_NAME}_*_${tmp_sid}.zip
+    unzip_file=./student_submission/${HW_NAME}_*_${tmp_sid}.zip # USING WILDCARD
+    unzip_file_name_alter=$(ls ./student_submission | grep ${tmp_sid})
+    unzip_file_alter=./student_submission/${unzip_file_name_alter}
 
     printf ">> student id : ${tmp_sid}\n" >> $LOG_FILE
 
+    # Unzip part
+
+    # student submitted zip file with right file name format.
     if [ -f $unzip_file ]; then
         unzip -O UTF-8 -o "$unzip_file" -d "./student_submission/${tmp_sid}" > /dev/null
         printf "${tmp_sid}\n" >> "./student_list_submitted.txt" 
         printf ">>> unzip success\n" >> $LOG_FILE
+    # if student submitted wrong file name format, but student submitted some sort of zip file.
+    elif [ -f $unzip_file_alter ]; then
+        cp $unzip_file_alter "./student_submission/${HW_NAME}_tmpzip_${tmp_sid}.zip"
+        unzip -O UTF-8 -o "$unzip_file_alter" -d "./student_submission/${tmp_sid}" > /dev/null
+        printf "${tmp_sid}\n" >> "./student_list_submitted.txt" 
+        printf ">>> unzip success\n" >> $LOG_FILE
+    # student did not submitted zip file.
     else
         printf "${tmp_sid}\n" >> "./student_list_not_submitted.txt"
         printf ">>> no zip file submitted\n" >> $LOG_FILE
     fi
 
+
 done < $STUDENT_LIST
+
+
+# Change submitted files into correct format
+while read sid; do
+    tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
+
+    for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
+        prob_name="${HW_PROB[prob_num]}"
+        
+        # alter submission_file when student submitted files inside folder
+        is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
+        if [ $is_alter -gt 0 ]; then
+            alter_submission_folder_name=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
+            alter_submission_file_name=$(ls ./student_submission/${tmp_sid}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
+            alter_submission_file="./student_submission/${tmp_sid}/${alter_submission_folder_name}/${alter_submission_file_name}"
+        fi
+        # student submission is inside another folder >> copy files outside from folder
+        if [ $is_alter -gt 0 ]; then
+            echo "${tmp_sid}: folder detected. copy files out from folder." >> $LOG_FILE
+            cp $alter_submission_file "./student_submission/${tmp_sid}/${alter_submission_file_name}"
+        fi
+
+        # change filename into correct file name format
+        submission_file_name=$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_")
+        submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
+        if [ ! -f "$submission_file" ]; then
+            wrong_format_file_name="$(ls ./student_submission/${tmp_sid} | grep -E "${prob_name}")"
+            if [ ! -z "$wrong_format_file_name" ]; then
+                echo "${tmp_sid}: wrong file format detected. change filename into correct file format." >> $LOG_FILE
+                cp "./student_submission/${tmp_sid}/${wrong_format_file_name}" "./student_submission/${tmp_sid}/${HW_NAME}_${prob_name}_tmpfile_${tmp_sid}.cpp"
+            fi
+        fi
+
+    done
+
+done < $STUDENT_LIST_SUBMITTED
+
 
 
 # 2. combine submission and case main
@@ -108,21 +157,14 @@ while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     mkdir "./outputs/${tmp_sid}"
 
+
     # copy student submission to make case main
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
 
-        submission_file_name=$(ls ./student_submission/${tmp_sid}/ | grep -E "_${prob_name}_")
+        submission_file_name=$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_")
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
-        
-        # alter submission_file when student submitted files inside folder
-        is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
-        if [ $is_alter -gt 0 ]; then
-            alter_submission_folder_name=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
-            alter_submission_file_name=$(ls ./student_submission/${tmp_sid}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
-            alter_submission_file="./student_submission/${tmp_sid}/${alter_submission_folder_name}/${alter_submission_file_name}"
-        fi
         
         printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
 
@@ -131,24 +173,7 @@ while read sid; do
             grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
             
 
-            # alter submission_file when student submitted files inside folder
-            if [ $is_alter -gt 0 ]; then
-                echo ">> ${HW_NAME}_${prob_name}: file submitted" >> $LOG_FILE
-
-                # add header file if there are no header
-                is_header=$(cat $alter_submission_file | grep '#include' | wc -l)
-                if [ $is_header -lt 1 ]; then
-                    prob_header="./grading_cases/${HW_NAME}_${prob_name}_header.cpp"
-                    cat "$prob_header" >> "$output_file"
-                fi
-
-                cat "${alter_submission_file}" >> "${output_file}"
-                printf "\n" >> "${output_file}"
-                cat "${grading_case}" >> "${output_file}"
-            
-            # normal case
-            elif [ -f $submission_file ]; then
-
+            if [ -f $submission_file ]; then
                 # add header file if there are no header
                 is_header=$(cat $submission_file | grep '#include' | wc -l)
                 if [ $is_header -lt 1 ]; then
@@ -161,7 +186,6 @@ while read sid; do
                 cat "${submission_file}" >> "${output_file}"
                 printf "\n" >> "${output_file}"
                 cat "${grading_case}" >> "${output_file}"
-
             
             else
                 echo ">> ${HW_NAME}_${prob_name}: file not submitted" >> $LOG_FILE
@@ -195,7 +219,8 @@ while read sid; do
             
             printf ">>> case ${case_num} > " >> $LOG_FILE
 
-            grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output.txt"
+            grading_case_1="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output_1.txt" # without EOL
+            grading_case_2="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output_2.txt" # with EOL
             output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
             
             if [ -f "${output_file}.cpp" ]; then
@@ -210,7 +235,8 @@ while read sid; do
             else
                 "${output_file}.out" > "${output_file}_output.txt" 
                 printf " compile success\n" >> $LOG_FILE
-                diff -u --strip-trailing-cr "${grading_case}" "${output_file}_output.txt" >> "${output_file}_output_diff.txt"
+                diff -u --strip-trailing-cr "${grading_case_1}" "${output_file}_output.txt" >> "${output_file}_output_1_diff.txt"
+                diff -u --strip-trailing-cr "${grading_case_2}" "${output_file}_output.txt" >> "${output_file}_output_2_diff.txt"
             fi
 
         done
@@ -220,6 +246,8 @@ while read sid; do
 done < $STUDENT_LIST_SUBMITTED
 
 
+
+# 4. score submission with compile result & output diff
 
 printf "\n\n4. score using outputs\n"
 printf "\n4. score using outputs\n" >> $LOG_FILE
@@ -252,7 +280,8 @@ while read sid; do
                 
                 if [ "$(cat ${output_file}_compile_result.txt | wc -l)" -ge 1 ]; then
                     printf "\"${prob_name}-case-${case_num}\" : \"compile-error\",\n" >> "$result_json"
-                elif [ "$(cat ${output_file}_output_diff.txt | wc -l)" -ge 1 ]; then
+                # if all test case diff file has some content == fail
+                elif [ "$(cat ${output_file}_output_1_diff.txt | wc -l)" -ge 1 -a "$(cat ${output_file}_output_2_diff.txt | wc -l)" -ge 1 ]; then
                     printf "\"${prob_name}-case-${case_num}\" : \"fail\",\n" >> "$result_json"
                 else
                     printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"

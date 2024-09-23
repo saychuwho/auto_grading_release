@@ -130,14 +130,23 @@ print_output_result (){
 
 # input prob_num case_num student_id
 print_output_diff_result (){
-    echo "### problem-${1}-case-${2} output diff result"
-    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt" ]]; then
+    echo "### problem-${1}-case-${2} output 1 diff result - without EOL"
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_1_diff.txt" ]]; then
         echo '```'
-        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_diff.txt"
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_1_diff.txt"
         echo " "
         echo '```'
     else
-        echo "no problem-${1}-case-${2} output diff result."
+        echo "no problem-${1}-case-${2} output 1 diff result."
+    fi
+    echo "### problem-${1}-case-${2} output 2 diff result - with EOL"
+    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_2_diff.txt" ]]; then
+        echo '```'
+        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_2_diff.txt"
+        echo " "
+        echo '```'
+    else
+        echo "no problem-${1}-case-${2} output 2 diff result."
     fi
 }
 
@@ -162,56 +171,70 @@ elif [ $(grep "${STUDENT_ID}" ./student_list.txt | wc -w) -eq 0 ]; then # studen
     exit 1
 fi
 
-report_file="./reports/submitted/${STUDENT_ID}.md"
+# make directories
+if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
+    mkdir ./reports/not_submitted/${STUDENT_ID}
+else
+    mkdir ./reports/submitted/${STUDENT_ID}
+fi
+
+# make file name
+report_file_summary="./reports/submitted/${STUDENT_ID}/${STUDENT_ID}_summary.md"
+report_file_submit_compile="./reports/submitted/${STUDENT_ID}/${STUDENT_ID}_submit_compile.md"
+report_file_output_diff="./reports/submitted/${STUDENT_ID}/${STUDENT_ID}_output_diff.md"
 
 if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
-    report_file="./reports/not_submitted/${STUDENT_ID}.md"
+    report_file_summary="./reports/not_submitted/${STUDENT_ID}/${STUDENT_ID}_summary.md"
+    report_file_submit_compile="./reports/not_submitted/${STUDENT_ID}/${STUDENT_ID}_submit_compile.md"
+    report_file_output_diff="./reports/not_submitted/${STUDENT_ID}/${STUDENT_ID}_output_diff.md"
 fi
 
-if [[ -f $report_file ]]; then
-    rm $report_file
-fi
 
-printf "# $STUDENT_ID $HW_NAME scoring report\n\n" >> $report_file
+
+printf "# $STUDENT_ID $HW_NAME scoring report - summary\n\n" >> $report_file_summary
+printf "# $STUDENT_ID $HW_NAME scoring report - submit_compile\n\n" >> $report_file_submit_compile
+printf "# $STUDENT_ID $HW_NAME scoring report - output_diff\n\n" >> $report_file_output_diff
 
 # print result
 if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
-    printf "$STUDENT_ID did not submitted .zip file.\n" >> $report_file
+    printf "$STUDENT_ID did not submitted .zip file.\n" >> $report_file_summary
+    printf "$STUDENT_ID did not submitted .zip file.\n" >> $report_file_submit_compile
+    printf "$STUDENT_ID did not submitted .zip file.\n" >> $report_file_output_diff
 
 else
-    print_result $STUDENT_ID >> $report_file
+    print_result $STUDENT_ID >> $report_file_summary
 
-    print_zip_ls $STUDENT_ID >> $report_file
+    print_zip_ls $STUDENT_ID >> $report_file_summary
 
     # print source code
-    printf "\n## Submitted Source Code\n" >> $report_file
+    printf "\n## Submitted Source Code\n" >> $report_file_submit_compile
     for ((prob_num=0;prob_num<$HW_INFO_PROB_NUM;prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
-        print_source_code $prob_name $STUDENT_ID >> $report_file
+        print_source_code $prob_name $STUDENT_ID >> $report_file_submit_compile
     done
 
     # print compiled code & compiled result
-    printf "\n## Compiled code & compiled result\n" >> $report_file
+    printf "\n## Compiled code & compiled result\n" >> $report_file_submit_compile
     for ((prob_num=0;prob_num<$HW_INFO_PROB_NUM;prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
 
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-            print_compile_code $prob_name $case_num $STUDENT_ID >> $report_file
-            print_compile_result $prob_name $case_num $STUDENT_ID >> $report_file
+            print_compile_code $prob_name $case_num $STUDENT_ID >> $report_file_submit_compile
+            print_compile_result $prob_name $case_num $STUDENT_ID >> $report_file_submit_compile
         done
 
     done
 
     # print output & diff result
-    printf "\n## Output result & diff result\n" >> $report_file
+    printf "\n## Output result & diff result\n" >> $report_file_output_diff
     for ((prob_num=0;prob_num<$HW_INFO_PROB_NUM;prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
 
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-            print_output_result $prob_name $case_num $STUDENT_ID >> $report_file
-            print_output_diff_result $prob_name $case_num $STUDENT_ID >> $report_file
+            print_output_result $prob_name $case_num $STUDENT_ID >> $report_file_output_diff
+            print_output_diff_result $prob_name $case_num $STUDENT_ID >> $report_file_output_diff
         done
 
     done

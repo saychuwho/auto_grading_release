@@ -15,11 +15,9 @@ while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     rm -rf "./student_submission/${tmp_sid}"
     rm -rf "./outputs/${tmp_sid}"
+    rm -rf ./reports/not_submitted/*
+    rm -rf ./reports/submitted/*
 done < $STUDENT_LIST
-
-rm ./reports/not_submitted/*.md
-rm ./reports/submitted/*.md
-
 
 # remove student_list_submitted.txt
 rm *_submitted.txt

@@ -45,6 +45,7 @@ with open(json_score_file, 'r') as f:
 # write header of information
 csv_header = "student_id,"
 for i in range(len(hw_prob)):
+    csv_header += f"{hw_prob[i]},"
     for j in range(hw_prob_case[i]):
         csv_header += f"{hw_prob[i]}-case-{j+1},"
 csv_header += "total-score,"
@@ -60,20 +61,27 @@ for s_id in student_list:
     student_result = f"{s_id},"
     student_score_result = f"{s_id},"
 
-    # student did not submitted score
+    # student did not submitted zip file
     if not os.path.isfile(student_result_file):
         student_zip_not_submitted = False
-        student_result += "zip-file-not-submitted," * (sum(hw_prob_case)+1)
+        student_result += "zip-file-not-submitted," * (sum(hw_prob_case)+1+len(hw_prob))
         
         student_score_sum = 0
+
         for i in range(len(hw_prob)):
+            prob_score = score_data[f"{hw_prob[i]}"]["zip-file-not-submitted"]
+            student_score_result += f"{prob_score},"
+            student_score_sum += prob_score
+            
             for j in range(hw_prob_case[i]):
                 case_score = score_data[f"{hw_prob[i]}"]["zip-file-not-submitted"]
                 student_score_result += f"{case_score},"
                 student_score_sum += case_score
+        
         student_score_result += f"{student_score_sum},"
 
-    # student did submitted score
+
+    # student did submitted zip file
     else:
         with open(student_result_file, 'r') as f:
             student_case_result = json.load(f)
@@ -81,16 +89,20 @@ for s_id in student_list:
         student_score_sum = 0
         for i in range(len(hw_prob)):
             prob_output = student_case_result[f"{hw_prob[i]}"]
-            if prob_output == "file-submitted":
-                student_score_sum += score_data[f"{hw_prob[i]}"][prob_output]
+            student_result += f"{prob_output},"
+
+            prob_score = score_data[f"{hw_prob[i]}"][prob_output]
+            student_score_result += f"{prob_score},"
+            student_score_sum += prob_score
             
             for j in range(hw_prob_case[i]):
                 prob_output = student_case_result[f"{hw_prob[i]}"]
                 if prob_output == "file-not-submitted":
                     student_result += f"{prob_output},"
-                    prob_score = score_data[f"{hw_prob[i]}"][prob_output]
-                    student_score_result += f"{prob_score},"
-                    student_score_sum += prob_score                   
+
+                    case_score = score_data[f"{hw_prob[i]}"][prob_output]
+                    student_score_result += f"{case_score},"
+                    student_score_sum += case_score                   
                 
                 else:
                     case_output = student_case_result[f"{hw_prob[i]}-case-{j+1}"]
