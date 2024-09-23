@@ -5,7 +5,8 @@
 tmp*
 .runlock
 *.zip
-*.md
+reports/not_submitted
+reports/submitted
 
 # Exceptions
 
