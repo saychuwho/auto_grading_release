@@ -7,6 +7,12 @@ tmp*
 *.zip
 reports/not_submitted
 reports/submitted
+outputs/
+student_submission/*/
+result.csv
+result_score.csv
+run_log.txt
+*_submitted.txt
 
 # Exceptions
 

@@ -63,25 +63,13 @@ print_zip_ls (){
 # input prob_name student_id
 print_source_code (){
     echo "### submitted problem-${1} source code"
-    submission_file_name=$(ls ./student_submission/${2}/ | grep -E "_${1}_")
+    submission_file_name="$(ls ./student_submission/${2}/ | grep -E "^${HW_NAME}_${1}_")"
     submission_file="./student_submission/${2}/${submission_file_name}"
 
-    # alter submission_file when student submitted files inside folder
-    is_alter=$(ls ./student_submission/${2} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
-    if [ $is_alter -gt 0 ]; then
-        alter_submission_folder_name=$(ls ./student_submission/${2} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
-        alter_submission_file_name=$(ls ./student_submission/${2}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
-        alter_submission_file="./student_submission/${2}/${alter_submission_folder_name}/${alter_submission_file_name}"
-    fi
 
-    if [ $is_alter -gt 0 ]; then
+    if [[ -f "$submission_file" ]]; then
         echo '```c++'
-        cat $alter_submission_file
-        echo " "
-        echo '```'
-    elif [[ -f $submission_file ]]; then
-        echo '```c++'
-        cat $submission_file
+        cat "$submission_file"
         echo " "
         echo '```'
     else
@@ -130,23 +118,20 @@ print_output_result (){
 
 # input prob_num case_num student_id
 print_output_diff_result (){
+    echo "### problem-${1}-case-${2} output 1 answer"
+    echo '```'
+    cat "./grading_cases/${HW_NAME}_${1}_case_${2}_output_1.txt"
+    echo " "
+    echo '```'
+
     echo "### problem-${1}-case-${2} output 1 diff result - without EOL"
     if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_1_diff.txt" ]]; then
         echo '```'
         cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_1_diff.txt"
-        echo " "
+        echo ""
         echo '```'
     else
         echo "no problem-${1}-case-${2} output 1 diff result."
-    fi
-    echo "### problem-${1}-case-${2} output 2 diff result - with EOL"
-    if [[ -f "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_2_diff.txt" ]]; then
-        echo '```'
-        cat "./outputs/${3}/${HW_NAME}_${1}_case_${2}_${3}_output_2_diff.txt"
-        echo " "
-        echo '```'
-    else
-        echo "no problem-${1}-case-${2} output 2 diff result."
     fi
 }
 

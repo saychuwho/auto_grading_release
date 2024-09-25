@@ -7,7 +7,7 @@ IFS=','
 FILE_NAME1="./student_list.csv"
 FILE_NAME2="./student_list.txt"
 
-while read -r blank1 sid name blank2 email who blank3; do
+while read -r sid name blank2 email who blank3; do
     if [ "$who" = "학생" ]; then
         echo "$sid,$name,$email,$who" >> $FILE_NAME1
         printf "$sid\n" >> $FILE_NAME2

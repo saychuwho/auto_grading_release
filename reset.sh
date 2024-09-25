@@ -22,6 +22,10 @@ done < $STUDENT_LIST
 # remove student_list_submitted.txt
 rm *_submitted.txt
 
+# remove tmpzip files
+
+rm ./student_submission/*_tmpzip_*.zip
+
 # remove result.csv
 rm "./result.csv"
 rm "./result_score.csv"
