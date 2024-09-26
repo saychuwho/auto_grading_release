@@ -39,9 +39,8 @@ git checkout 2024-CSE201-Assignment-1
 다음 명령어들을 실행합니다. 
 
 ```bash
-chmod 755 ./run.sh
-chmod 755 ./reset.sh
-chmod 755 ./_report_print.sh
+chmod 755 ./setup.sh
+./setup.sh
 ```
 
 <img src="./img/howtouse_3_1.png" width="75%">
@@ -65,7 +64,7 @@ chmod 755 ./_report_print.sh
 
 <img src="./img/howtouse_5_1.png" width="75%">
 
-`run.sh`는 실행되는 동안 진행 상황을 다음과 같이 보여줍니다. 
+`run.sh`는 실행되는 동안 진행 상황을 다음과 같이 보여줍니다. 만약 컴파일 과정에서 segmentation fault가 일어났다면, 해당 학생이 제출한 코드 중 하나가 segmentation fault가 일어났다는 것을 의미합니다. 채점 시 참고하면 됩니다. 
 
 <img src="./img/howtouse_5_2.png" width="75%">
 
@@ -127,14 +126,23 @@ chmod 755 ./_report_print.sh
 ./reset.sh
 ```
 
-## Troubleshooting
-
-만약 /bin/bash^M을 찾을 수 없다는 오류 메시지가 나오거나, 초반부에 hw information을 말하는 부분에서 syntax error가 나온다면, 다음 파일들의 End Of Line을 CRLF에서 LF로 바꾸어야 제대로 동작합니다. 이를 위해서는 다음 명령어를 실행해줍니다.
+또는, `./run.sh`를 실행한 이후, 특정 학생이 제출한 코드를 `./student_submission/학생학번`에서 수정한 뒤 다시 채점하고자 한다면, `./student_submission/학생학번/수정하고자하는파일.cpp`에서 소스 코드를 수정한 다음 `./run_extra 학생학번`을 실행하면 됩니다. 이러면 새로 수정한 소스코드를 바탕으로 해당 학생만 새로 채점합니다.
 
 ```bash
-dos2unix ./run.sh
-dos2unix ./reset.sh
-dos2unix ./student_list.txt
-dos2unix ./_report_print.sh
-dos2unix ./result_score.py
+./run_extra.sh 학생학번
+```
+
+이때, 소스코드 중 `_tmpfile_`이라 표시된 소스코드가 있다면, **해당 소스코드를 수정해야 합니다.**
+
+아래 예시를 보면, 실제 학생이 제출한 코드는 **파란색 사각형** 안 코드입니다. 만약 해당 문제의 소스코드를 수정하고자 한다면, **파란색 사각형** 속 소스코드를 수정하는 것이 아니라 **빨간색 사각형** 안 소스코드를 수정해야 합니다.
+
+<img src="./img/howtouse_7_1.png" width="60%">
+
+
+## Troubleshooting
+
+만약 /bin/bash^M을 찾을 수 없다는 오류 메시지가 `./setup.sh`를 실행할 때 나온다면, 다음 명령어를 입력해주세요.
+
+```bash
+dos2unix ./setup.sh
 ```

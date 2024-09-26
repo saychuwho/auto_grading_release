@@ -63,7 +63,7 @@ print_zip_ls (){
 # input prob_name student_id
 print_source_code (){
     echo "### submitted problem-${1} source code"
-    submission_file_name="$(ls ./student_submission/${2}/ | grep -E "^${HW_NAME}_${1}_")"
+    submission_file_name="$(ls ./student_submission/${2}/ | grep -E "^${HW_NAME}_${1}_" | grep -E ".cpp$")"
     submission_file="./student_submission/${2}/${submission_file_name}"
 
 

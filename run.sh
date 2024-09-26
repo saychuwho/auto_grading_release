@@ -5,7 +5,28 @@
 
 
 # 0. Pre steps 
-# set hw informations / check if sample.sh already executed
+# set hw informations / check if run.sh already executed
+
+
+# code from https://github.com/fearside/ProgressBar
+# 1. Create ProgressBar function
+# 1.1 Input is currentState($1) and totalState($2)
+function ProgressBar {
+# Process data
+    let _progress=(${1}*100/${2}*100)/100
+    let _done=(${_progress}*4)/10
+    let _left=40-$_done
+# Build progressbar string lengths
+    _fill=$(printf "%${_done}s")
+    _empty=$(printf "%${_left}s")
+
+# 1.2 Build progressbar strings and print the ProgressBar line
+# 1.2.1 Output example:                           
+# 1.2.1.1 Progress : [########################################] 100%
+printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%%"
+
+}
+
 
 # Prevent running sample.sh when it already executed.
 PROGNAME=$(basename $0)
@@ -23,6 +44,10 @@ STUDENT_LIST="./student_list.txt"
 STUDENT_LIST_SUBMITTED="./student_list_submitted.txt"
 
 LOG_FILE="./run_log.txt"
+
+# declare progress bar variable
+PROGRESS_START=1
+PROGRESS_TOTAL_STUDENT=$(cat $STUDENT_LIST | wc -l)
 
 declare -a HW_INFO
 while read value; do
@@ -49,14 +74,14 @@ done
 echo "< $HW_NAME scoring system >"
 echo "> # of problem : ${HW_INFO_PROB_NUM}"
 for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
-    printf "> Problem ${HW_PROB[prob_num]}: \n"
+    printf "> Problem ${HW_PROB[prob_num]}: "
 
     case_len=${HW_PROB_CASE[prob_num]}
 
     for ((case_num=0; case_num<${case_len}; case_num++)); do
-        printf "\tcase $((case_num+1))\n"
+        printf "\tcase $((case_num+1))"
     done
-
+    echo ""
 done
 
 # Print same thing on ./run_log.txt
@@ -64,14 +89,14 @@ echo "< $HW_NAME scoring system >" >> $LOG_FILE
 echo $(date) >> $LOG_FILE
 echo "> # of problem : ${HW_INFO_PROB_NUM}" >> $LOG_FILE
 for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
-    printf "> Problem ${HW_PROB[prob_num]}: \n" >> $LOG_FILE
+    printf "> Problem ${HW_PROB[prob_num]}: " >> $LOG_FILE
 
     case_len=${HW_PROB_CASE[prob_num]}
 
     for ((case_num=0; case_num<${case_len}; case_num++)); do
-        printf "\tcase $((case_num+1))\n" >> $LOG_FILE
+        printf "\tcase $((case_num+1))" >> $LOG_FILE
     done
-
+    echo "" >> $LOG_FILE
 done
 
 
@@ -80,6 +105,7 @@ done
 printf "\n1. Unzip submissions\n"
 printf "\n1. Unzip submissions\n" >> $LOG_FILE
 
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
@@ -109,53 +135,63 @@ while read sid; do
         printf ">>> no zip file submitted\n" >> $LOG_FILE
     fi
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
 
 done < $STUDENT_LIST
+echo ""
 
 
-# Change submitted files into correct format
+
+# declare submitted student number
+PROGRESS_SUBMIT_STUDENT=$(cat $STUDENT_LIST_SUBMITTED | wc -l)
+
+# 2. Change submitted files into correct format
+printf "\n2. Change submitted files into correct format\n"
+printf "\n2. Change submitted files into correct format\n" >> $LOG_FILE
+
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
+    # alter submission_file when student submitted files inside folder
+    is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*' | wc -w)
+    if [ $is_alter -gt 0 ]; then
+        echo "${tmp_sid}: folder detected. copy files out from folder." >> $LOG_FILE
+        alter_submission_folder_name="$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*')"
+        cp "./student_submission/${tmp_sid}/${alter_submission_folder_name}/"* "./student_submission/${tmp_sid}/"
+    fi
+
+    # change filename into correct file name format
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         
-        # alter submission_file when student submitted files inside folder
-        is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*' | wc -w)
-        if [ $is_alter -gt 0 ]; then
-            alter_submission_folder_name="$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*')"
-            alter_submission_file_name=$(ls "./student_submission/${tmp_sid}/${alter_submission_folder_name}/" | grep -E "_${prob_name}_")
-            alter_submission_file="./student_submission/${tmp_sid}/${alter_submission_folder_name}/${alter_submission_file_name}"
-        fi
-
-        # student submission is inside another folder >> copy files outside from folder
-        if [ $is_alter -gt 0 ]; then
-            echo "${tmp_sid}: folder detected. copy files out from folder." >> $LOG_FILE
-            cp "$alter_submission_file" "./student_submission/${tmp_sid}/${alter_submission_file_name}"
-        fi
-
-        # change filename into correct file name format
-        submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_")"
+        submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$" )"
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
         if [ ! -f "$submission_file" ]; then
-            wrong_format_file_name="$(ls ./student_submission/${tmp_sid} | grep -E "${prob_name}")"
+            wrong_format_file_name="$(ls ./student_submission/${tmp_sid} | grep -E "${prob_name}" | grep -E ".cpp$")"
             if [ ! -z "$wrong_format_file_name" ]; then
-                echo "${tmp_sid}: wrong file format detected. change filename into correct file format." >> $LOG_FILE
+                echo "${tmp_sid}: wrong file format detected at prob:${prob_name}. change filename into correct file format." >> $LOG_FILE
                 cp "./student_submission/${tmp_sid}/${wrong_format_file_name}" "./student_submission/${tmp_sid}/${HW_NAME}_${prob_name}_tmpfile_${tmp_sid}.cpp"
             fi
         fi
 
     done
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
 done < $STUDENT_LIST_SUBMITTED
+echo ""
 
 
+# 3. combine submission and case main
 
-# 2. combine submission and case main
+printf "\n3. combine submission and cases\n"
+printf "\n3. combine submission and cases\n" >> $LOG_FILE
 
-printf "\n2. combine submission and cases\n"
-printf "\n2. combine submission and cases\n" >> $LOG_FILE
-
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     mkdir "./outputs/${tmp_sid}"
@@ -166,7 +202,7 @@ while read sid; do
         prob_name="${HW_PROB[prob_num]}"
         case_len="${HW_PROB_CASE[prob_num]}"
 
-        submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_")"
+        submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$")"
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
         
         printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
@@ -184,6 +220,9 @@ while read sid; do
                     cat "$prob_header" >> "$output_file"
                     printf "\n" >> "${output_file}"
                 fi
+
+                # if there are main function in submission_file, delete it
+                sed -i '/int\s\+main\s*(.*)/,/^}/d' "$submission_file"
 
                 echo ">> ${HW_NAME}_${prob_name}: file submitted" >> $LOG_FILE
 
@@ -204,19 +243,23 @@ while read sid; do
 
     done
 
-done < $STUDENT_LIST_SUBMITTED
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
+done < $STUDENT_LIST_SUBMITTED
+echo ""
 
 
 # 3. compile cases and make outputs
 
-printf "\n3. compile cases and make outputs, make diff file\n"
-printf "\n3. compile cases and make outputs, make diff file\n" >> $LOG_FILE
+printf "\n4. compile cases and make outputs, make diff file\n"
+printf "\n4. compile cases and make outputs, make diff file\n" >> $LOG_FILE
 
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
-    printf "\n> student id: ${tmp_sid}"
+    printf "\n> student id: ${tmp_sid} / Progress (${PROGRESS_ITER}/${PROGRESS_SUBMIT_STUDENT})"
     printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
 
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
@@ -252,16 +295,19 @@ while read sid; do
 
     done
 
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
 done < $STUDENT_LIST_SUBMITTED
 
 
 
 # 4. score submission with compile result & output diff
 
-printf "\n\n4. score using outputs\n"
-printf "\n4. score using outputs\n" >> $LOG_FILE
+printf "\n\n5. score using outputs\n"
+printf "\n5. score using outputs\n" >> $LOG_FILE
 
 
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
@@ -302,27 +348,34 @@ while read sid; do
     printf "\"dummy\" : \"dummy\"\n" >> "$result_json"
     printf "}\n" >> "$result_json"
 
-done < $STUDENT_LIST_SUBMITTED
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
+done < $STUDENT_LIST_SUBMITTED
+echo ""
 
 
 # 5. Print Reports using print.sh
 
-printf "\n5. Print reports using _report_print.sh\n"
-printf "\n5. Print reports using _report_print.sh\n" >> $LOG_FILE
+printf "\n6. Print reports using _report_print.sh\n"
+printf "\n6. Print reports using _report_print.sh\n" >> $LOG_FILE
 
+PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
     printf "> student id: ${tmp_sid}\n" >> $LOG_FILE
     ./_report_print.sh $tmp_sid
-done < $STUDENT_LIST
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+done < $STUDENT_LIST
+echo ""
 
 # 6. Score student's submission based on result file and make one result.csv
 
-printf "\n6. Score student submission based on result file and make one result.csv\n"
-printf "\n6. Score student submission based on result file and make one result.csv\n" >> $LOG_FILE
+printf "\n7. Score student submission based on result file and make one result.csv\n"
+printf "\n7. Score student submission based on result file and make one result.csv\n" >> $LOG_FILE
 
 python3 _result_score.py
 
