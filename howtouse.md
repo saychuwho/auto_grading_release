@@ -120,7 +120,7 @@ chmod 755 ./setup.sh
 
 4. 학생들간의 코드 유사도를 측정한 결과를 담고 있는 `result_moss.md`
 
-유사도는 [MOSS](https://theory.stanford.edu/~aiken/moss/)를 이용해 측정한 결과입니다. 파일 안에 각 문제 별 유사도 측정 결과를 볼 수 있는 링크가 있습니다. 간단한 과제의 경우 유사도가 의미 없을 수 있지만, 텀 프로젝트 같이 복잡한 과제의 경우는 유사도가 중요하게 작용할 수 있습니다.
+유사도는 [MOSS](https://theory.stanford.edu/~aiken/moss/)를 이용해 측정한 결과입니다. 파일 안에 각 문제 별 유사도 측정 결과를 볼 수 있는 링크가 있습니다. 간단한 과제의 경우 유사도가 의미 없을 수 있지만, 복잡한 과제의 경우는 유사도가 중요하게 작용할 수 있습니다.
 
 다음은 assignment 1의 경우를 표시한 경우입니다.
 
@@ -135,7 +135,7 @@ chmod 755 ./setup.sh
 <img src="./img/howtouse_6_16.png" width="70%">
 <br>
 
-5. 학생들의 complie error, fail 여부 등을 담고 있는 `result_compile_error.md`, `result_fail_list.md`, `result_file_not_submitted_list.md`, `result_zip_file_not_submitted.md`
+1. 학생들의 complie error, fail 여부 등을 담고 있는 `result_compile_error.md`, `result_fail_list.md`, `result_file_not_submitted_list.md`, `result_zip_file_not_submitted.md`
 
 채점 시 확인하기 편하도록 이번에 추가했습니다. 각 목록을 보고 채점시 참고하면 됩니다.
 
