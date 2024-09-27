@@ -13,6 +13,8 @@ result.csv
 result_score.csv
 run_log.txt
 *_submitted.txt
+submission_by_problem/*/
+result_*.md
 
 # Exceptions
 

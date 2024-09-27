@@ -120,9 +120,11 @@ for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
 done
 
 
-PROGRESS_ITER=1
+
 # 2. compile cases and make outputs
 printf "\n2. compile cases and make outputs, make diff file\n"
+
+PROGRESS_ITER=1
 for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
     prob_name=${HW_PROB[prob_num]}
     case_len=${HW_PROB_CASE[prob_num]}

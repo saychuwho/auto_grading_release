@@ -60,6 +60,8 @@ HW_INFO_PROB_START=2
 HW_INFO_CASE_START=$((HW_INFO_PROB_START+HW_INFO_PROB_NUM))
 HW_INFO_LEN=${#HW_INFO[@]}
 
+HW_CASE_TOTAL_NUM=0
+
 # Set HW_PROB, HW_PROB_CASE
 declare -a HW_PROB
 declare -a HW_PROB_CASE
@@ -68,6 +70,7 @@ for ((prob_num=$HW_INFO_PROB_START; prob_num<$HW_INFO_CASE_START; prob_num++)); 
     HW_PROB+=( ${HW_INFO[prob_num]} )
     case_index=$((prob_num+HW_INFO_PROB_NUM))
     HW_PROB_CASE+=( ${HW_INFO[case_index]} )
+    HW_CASE_TOTAL_NUM=$((HW_CASE_TOTAL_NUM+HW_INFO[case_index]))
 done
 
 # Print information of HW
@@ -148,27 +151,29 @@ echo ""
 PROGRESS_SUBMIT_STUDENT=$(cat $STUDENT_LIST_SUBMITTED | wc -l)
 
 # 2. Change submitted files into correct format
-printf "\n2. Change submitted files into correct format\n"
-printf "\n2. Change submitted files into correct format\n" >> $LOG_FILE
+printf "\n2. Change submitted files into correct format & Copy files into submission_by_problem\n"
+printf "\n2. Change submitted files into correct format & Copy files into submission_by_problem\n" >> $LOG_FILE
 
 PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
     # alter submission_file when student submitted files inside folder
-    is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*' | wc -w)
+    is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} _]*_[0-9]*' | wc -w)
     if [ $is_alter -gt 0 ]; then
         echo "${tmp_sid}: folder detected. copy files out from folder." >> $LOG_FILE
-        alter_submission_folder_name="$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} ]*_[0-9]*')"
+        alter_submission_folder_name="$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} _]*_[0-9]*')"
         cp "./student_submission/${tmp_sid}/${alter_submission_folder_name}/"* "./student_submission/${tmp_sid}/"
     fi
 
-    # change filename into correct file name format
+    
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name="${HW_PROB[prob_num]}"
         
         submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$" )"
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
+        
+        # change filename into correct file name format
         if [ ! -f "$submission_file" ]; then
             wrong_format_file_name="$(ls ./student_submission/${tmp_sid} | grep -E "${prob_name}" | grep -E ".cpp$")"
             if [ ! -z "$wrong_format_file_name" ]; then
@@ -177,7 +182,16 @@ while read sid; do
             fi
         fi
 
+        # copy files into submission_by_problem
+        if [ ! -d "./submission_by_problem/${prob_name}" ]; then
+            mkdir "./submission_by_problem/${prob_name}"
+        fi
+        copy_submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$")"
+        copy_submission_file="./student_submission/${tmp_sid}/${copy_submission_file_name}"
+        cp "${copy_submission_file}" "./submission_by_problem/${prob_name}/${HW_NAME}_${prob_name}_${tmp_sid}.cpp"
+
     done
+
 
     ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
     PROGRESS_ITER=$((PROGRESS_ITER+1))
@@ -259,9 +273,10 @@ PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
-    printf "\n> student id: ${tmp_sid} / Progress (${PROGRESS_ITER}/${PROGRESS_SUBMIT_STUDENT})"
+    printf "\n> student id: ${tmp_sid} / Progress (${PROGRESS_ITER}/${PROGRESS_SUBMIT_STUDENT})\n"
     printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
 
+    PROGRESS_ITER_INNER=$PROGRESS_START
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
         prob_name=${HW_PROB[prob_num]}
         case_len=${HW_PROB_CASE[prob_num]}
@@ -291,6 +306,8 @@ while read sid; do
                 diff -uZB --strip-trailing-cr "${grading_case_1}" "${output_file}_output.txt" >> "${output_file}_output_1_diff.txt"
             fi
 
+            ProgressBar ${PROGRESS_ITER_INNER} ${HW_CASE_TOTAL_NUM}
+            PROGRESS_ITER_INNER=$((PROGRESS_ITER_INNER+1))
         done
 
     done
@@ -379,6 +396,12 @@ printf "\n7. Score student submission based on result file and make one result.c
 
 python3 _result_score.py
 
+
+# 8. Check Plagiarism with MOSS
+printf "\n8. Check Plagiarism with MOSS & make report\n"
+printf "\n8. Check Plagiarism with MOSS & make report\n" >> $LOG_FILE
+
+./_result_moss.sh
 
 printf "\n<<< FINISHED >>>\n"
 printf "\n<<< FINISHED >>>\n" >> $LOG_FILE

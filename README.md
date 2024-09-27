@@ -15,14 +15,19 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 - [Auto Assignment Grading Program Using Shell Scripts - Release](#auto-assignment-grading-program-using-shell-scripts---release)
   - [Tables](#tables)
   - [How to use](#how-to-use)
-  - [Bug Reported](#bug-reported)
+  - [Bug Reported \& Feature added](#bug-reported--feature-added)
 
 ## How to use
 
 다음 파일을 참고해주세요. [howtouse.md](./howtouse.md) / [howtouse.pdf](./howtouse.pdf)
 
-## Bug Reported
+## Bug Reported & Feature added
 
+- 2024.09.27
+  - `grep`을 사용할 때 예외사항이 발생해 수정함.
+  - (기능추가) 이제 일일이 학생의 리포트를 살필 필요 없이 컴파일 에러나 테스트 케이스 통과 실패 여부를 확인할 수 있는 파일을 채점 프로그램이 생성합니다. 자세한 내용은 `howtouse.pdf`의 6번 항목을 참고해주세요
+  - (기능추가) 이제 학생들의 제출물 간 유사도를 측정할 수 있습니다. [MOSS](https://theory.stanford.edu/~aiken/moss/)를 이용하며, 유사도 측정 결과는 `result_moss.md`에 링크로 나옵니다. 지금 과제는 간단해서 이용하는 의미가 없을 수 있지만, 추후 복잡한 과제에서는 유용할 수 있습니다.
+  - (기능추가) 새로운 기능 추가에 맞춰서 `setup.sh`, `howtouse.md`, `howtouse.pdf`를 업데이트 했습니다.
 - 2024.09.26
   - 학생이 압축 파일 속에 폴더를 만든 후 소스코드를 넣은 경우를 처리하는 logic에서 이름 관련 오류가 발견되어 수정함.
   - 학생의 소스코드를 찾는 정규표현식에서 오로지 `.cpp` 파일만 찾을 수 있도록 logic을 수정함

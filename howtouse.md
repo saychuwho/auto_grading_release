@@ -6,10 +6,10 @@
 
 ### 1. 필수 요건 설치
 
-`git`, `zip`, `unzip` 그리고 `dos2unix`를 설치합니다.
+`git`, `zip`, `unzip`, `dos2unix`, `perl`을 설치합니다.
 
 ```bash
-sudo apt install git zip unzip dos2unix
+sudo apt install git zip unzip dos2unix perl
 ```
 
 ### 2. 프로그램 설치
@@ -117,6 +117,31 @@ chmod 755 ./setup.sh
 <img src="./img/howtouse_6_12.png" width="70%">
 
 출력 형식을 제대로 지킨 경우에는 제대로 채점이 되지만, 간혹 의미적으로는 맞지만 출력 형식을 지키지 않았거나, 제출 파일 이름 형식을 지키지 않아 채점이 되지 않을 수 있습니다. 이 경우에는 결과 파일을 바탕으로 직접 채점을 해야 할 수 있습니다. 
+
+4. 학생들간의 코드 유사도를 측정한 결과를 담고 있는 `result_moss.md`
+
+유사도는 [MOSS](https://theory.stanford.edu/~aiken/moss/)를 이용해 측정한 결과입니다. 파일 안에 각 문제 별 유사도 측정 결과를 볼 수 있는 링크가 있습니다. 간단한 과제의 경우 유사도가 의미 없을 수 있지만, 텀 프로젝트 같이 복잡한 과제의 경우는 유사도가 중요하게 작용할 수 있습니다.
+
+다음은 assignment 1의 경우를 표시한 경우입니다.
+
+<img src="./img/howtouse_6_14.png" width="70%">
+
+각 링크로 들어가면, 어떤 파일이 얼마나 유사한지를 퍼센트로 표시하고 있습니다. 정렬은 유사도가 높은 순서대로 입니다.
+
+<img src="./img/howtouse_6_15.png" width="70%">
+
+여기서 파일을 클릭하면, 두 소스코드가 어떤 부분에서 유사한지를 보여줍니다. 이 정보들을 종합해서 채점 시 판단하면 됩니다.
+
+<img src="./img/howtouse_6_16.png" width="70%">
+<br>
+
+5. 학생들의 complie error, fail 여부 등을 담고 있는 `result_compile_error.md`, `result_fail_list.md`, `result_file_not_submitted_list.md`, `result_zip_file_not_submitted.md`
+
+채점 시 확인하기 편하도록 이번에 추가했습니다. 각 목록을 보고 채점시 참고하면 됩니다.
+
+다음은 `result_compile_error.md`의 예시로, 학생의 학번과 컴파일 에러가 난 문제 및 케이스를 보여줍니다.
+
+<img src="./img/howtouse_6_13.png" width="70%">
 
 ### 7. 재실행
 

@@ -41,8 +41,6 @@ while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     rm -rf "./student_submission/${tmp_sid}"
     rm -rf "./outputs/${tmp_sid}"
-    rm -rf ./reports/not_submitted/*
-    rm -rf ./reports/submitted/*
 
     ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
     PROGRESS_ITER=$((PROGRESS_ITER+1))
@@ -53,12 +51,23 @@ echo ""
 rm *_submitted.txt
 
 # remove tmpzip files
-
 rm ./student_submission/*_tmpzip_*.zip
 
-# remove result.csv
+# remove submission_by_problem content
+rm -rf ./submission_by_problem/*/
+
+# remove report files
+rm -rf ./reports/not_submitted/*
+rm -rf ./reports/submitted/*
+
+# remove result files
 rm "./result.csv"
 rm "./result_score.csv"
+rm "./result_zip_not_submitted_list.md"
+rm "./result_file_not_submitted_list.md"
+rm "./result_compile_error.md"
+rm "./result_fail_list.md"
+rm "./result_moss.md"
 
 # remove log
 rm "./run_log.txt"

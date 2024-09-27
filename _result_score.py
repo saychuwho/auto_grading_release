@@ -37,12 +37,24 @@ result_csv_file="./result.csv" # result.txt information .csv
 write_score_file = "./result_score.csv" # score information .csv
 json_score_file = "./hw_info_score.json" # score information is in this .json file
 
+zip_not_submitted_list="./result_zip_not_submitted_list.md"
+file_not_submitted_list="./result_file_not_submitted_list.md"
+compile_error_list="./result_compile_error.md"
+fail_list="./result_fail_list.md"
+
 f_result = open(result_csv_file, 'w')
 f_score = open(write_score_file, 'w')
+f_zip_not_submitted_list = open(zip_not_submitted_list, 'w')
+f_file_not_submitted_list = open(file_not_submitted_list, 'w')
+f_compile_error_list = open(compile_error_list, 'w')
+f_fail_list = open(fail_list, 'w')
+
+
 with open(json_score_file, 'r') as f:
     score_data=json.load(f)
 
-# write header of information
+
+# write header of information in csv file
 csv_header = "student_id,"
 for i in range(len(hw_prob)):
     csv_header += f"{hw_prob[i]},"
@@ -80,6 +92,9 @@ for s_id in student_list:
         
         student_score_result += f"{student_score_sum},"
 
+        # write zip_not_submitted_list
+        f_zip_not_submitted_list.write(f"- [ ] {s_id}\n")
+
 
     # student did submitted zip file
     else:
@@ -102,7 +117,10 @@ for s_id in student_list:
 
                     case_score = score_data[f"{hw_prob[i]}"][prob_output]
                     student_score_result += f"{case_score},"
-                    student_score_sum += case_score                   
+                    student_score_sum += case_score
+
+                    # write file_not_submitted_list
+                    f_file_not_submitted_list.write(f"- [ ] {s_id} : {hw_prob[i]}-case-{j+1}\n")             
                 
                 else:
                     case_output = student_case_result[f"{hw_prob[i]}-case-{j+1}"]
@@ -111,6 +129,14 @@ for s_id in student_list:
                     case_score = score_data[f"{hw_prob[i]}-case-{j+1}"][case_output]
                     student_score_result += f"{case_score},"
                     student_score_sum += case_score
+
+                    # write compile_error_list, fail_list
+                    if case_output == "compile-error":
+                        f_compile_error_list.write(f"- [ ] {s_id} : {hw_prob[i]}-case-{j+1}\n")
+                    elif case_output == "fail":
+                        f_fail_list.write(f"- [ ] {s_id} : {hw_prob[i]}-case-{j+1}\n")
+
+
         
         student_result += ","
         student_score_result += f"{student_score_sum},"
@@ -121,6 +147,10 @@ for s_id in student_list:
     f_result.write(student_result)
     f_score.write(student_score_result)
 
+
 f_result.close()
 f_score.close()
-
+f_zip_not_submitted_list.close()
+f_file_not_submitted_list.close()
+f_compile_error_list.close()
+f_fail_list.close()
