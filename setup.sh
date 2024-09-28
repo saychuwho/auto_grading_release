@@ -9,6 +9,7 @@ dos2unix ./_report_print.sh
 dos2unix ./_result_score.py
 dos2unix ./run_extra.sh
 dos2unix ./_result_moss.sh
+dos2unix ./_convert_file_name.py
 
 chmod 755 ./run.sh
 chmod 755 ./reset.sh

@@ -10,7 +10,8 @@
 
 # code from https://github.com/fearside/ProgressBar
 # 1. Create ProgressBar function
-# 1.1 Input is currentState($1) and totalState($2)
+# 1.1 Input is currentState($1) and totalState($2) 
+# 1.2 modify ProgressBar extra_print($3)
 function ProgressBar {
 # Process data
     let _progress=(${1}*100/${2}*100)/100
@@ -23,7 +24,7 @@ function ProgressBar {
 # 1.2 Build progressbar strings and print the ProgressBar line
 # 1.2.1 Output example:                           
 # 1.2.1.1 Progress : [########################################] 100%
-printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%%"
+printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%% ${3}     "
 
 }
 
@@ -112,6 +113,9 @@ PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
     unzip_file=./student_submission/${HW_NAME}_*_${tmp_sid}.zip # USING WILDCARD
     unzip_file_name_alter="$(ls ./student_submission | grep ${tmp_sid})"
     unzip_file_alter="./student_submission/${unzip_file_name_alter}"
@@ -126,7 +130,7 @@ while read sid; do
         printf "${tmp_sid}\n" >> "./student_list_submitted.txt" 
         printf ">>> unzip success\n" >> $LOG_FILE
     # if student submitted wrong file name format, but student submitted some sort of zip file.
-    elif [ -f $unzip_file_alter ]; then
+    elif [ -f "$unzip_file_alter" ]; then
 
         cp "$unzip_file_alter" "./student_submission/${HW_NAME}_tmpzip_${tmp_sid}.zip"
         unzip -O UTF-8 -o "$unzip_file_alter" -d "./student_submission/${tmp_sid}" > /dev/null
@@ -137,11 +141,6 @@ while read sid; do
         printf "${tmp_sid}\n" >> "./student_list_not_submitted.txt"
         printf ">>> no zip file submitted\n" >> $LOG_FILE
     fi
-
-    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
-    PROGRESS_ITER=$((PROGRESS_ITER+1))
-
-
 done < $STUDENT_LIST
 echo ""
 
@@ -158,12 +157,18 @@ PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
     # alter submission_file when student submitted files inside folder
-    is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} _]*_[0-9]*' | wc -w)
+    is_alter=$(ls --classify ./student_submission/${tmp_sid} | grep '/$' | grep -v "MACOSX" | wc -w)
     if [ $is_alter -gt 0 ]; then
         echo "${tmp_sid}: folder detected. copy files out from folder." >> $LOG_FILE
-        alter_submission_folder_name="$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L} _]*_[0-9]*')"
-        cp "./student_submission/${tmp_sid}/${alter_submission_folder_name}/"* "./student_submission/${tmp_sid}/"
+        alter_submission_folder_name="$(ls --classify ./student_submission/${tmp_sid} | grep '/$' | grep -v "MACOSX")"
+        
+        if [ ! "$(ls --classify "./student_submission/${tmp_sid}/${alter_submission_folder_name}/" | grep '/$' | wc -l )" -ge 1 ]; then
+            cp "./student_submission/${tmp_sid}/${alter_submission_folder_name}"* "./student_submission/${tmp_sid}/"
+        fi
     fi
 
     
@@ -175,11 +180,7 @@ while read sid; do
         
         # change filename into correct file name format
         if [ ! -f "$submission_file" ]; then
-            wrong_format_file_name="$(ls ./student_submission/${tmp_sid} | grep -E "${prob_name}" | grep -E ".cpp$")"
-            if [ ! -z "$wrong_format_file_name" ]; then
-                echo "${tmp_sid}: wrong file format detected at prob:${prob_name}. change filename into correct file format." >> $LOG_FILE
-                cp "./student_submission/${tmp_sid}/${wrong_format_file_name}" "./student_submission/${tmp_sid}/${HW_NAME}_${prob_name}_tmpfile_${tmp_sid}.cpp"
-            fi
+            python3 _convert_file_name.py ${tmp_sid} ${prob_num} >> $LOG_FILE
         fi
 
         # copy files into submission_by_problem
@@ -188,13 +189,11 @@ while read sid; do
         fi
         copy_submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$")"
         copy_submission_file="./student_submission/${tmp_sid}/${copy_submission_file_name}"
-        cp "${copy_submission_file}" "./submission_by_problem/${prob_name}/${HW_NAME}_${prob_name}_${tmp_sid}.cpp"
-
+    
+        if [ -f "${copy_submission_file}" ]; then
+            cp "${copy_submission_file}" "./submission_by_problem/${prob_name}/${HW_NAME}_${prob_name}_${tmp_sid}.cpp"
+        fi
     done
-
-
-    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
-    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
 done < $STUDENT_LIST_SUBMITTED
 echo ""
@@ -210,6 +209,8 @@ while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     mkdir "./outputs/${tmp_sid}"
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
     # copy student submission to make case main
     for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
@@ -256,10 +257,6 @@ while read sid; do
         done
 
     done
-
-    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
-    PROGRESS_ITER=$((PROGRESS_ITER+1))
-
 done < $STUDENT_LIST_SUBMITTED
 echo ""
 
@@ -285,6 +282,10 @@ while read sid; do
        
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
             
+            tmp_print="${prob_name}-case-${case_num}"
+            ProgressBar ${PROGRESS_ITER_INNER} ${HW_CASE_TOTAL_NUM} ${tmp_print}
+            PROGRESS_ITER_INNER=$((PROGRESS_ITER_INNER+1))
+
             printf ">>> case ${case_num} > " >> $LOG_FILE
 
             grading_case_1="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output_1.txt"
@@ -301,13 +302,12 @@ while read sid; do
             if [ "$(cat "${output_file}_compile_result.txt" | wc -l)" -ge 1 ]; then
                 printf " E: compile error\n" >> $LOG_FILE
             else
-                "${output_file}.out" > "${output_file}_output.txt"
+                timeout 10s "${output_file}.out" > "${output_file}_output.txt"
                 printf " compile success\n" >> $LOG_FILE
                 diff -uZB --strip-trailing-cr "${grading_case_1}" "${output_file}_output.txt" >> "${output_file}_output_1_diff.txt"
             fi
 
-            ProgressBar ${PROGRESS_ITER_INNER} ${HW_CASE_TOTAL_NUM}
-            PROGRESS_ITER_INNER=$((PROGRESS_ITER_INNER+1))
+            
         done
 
     done
@@ -327,6 +327,9 @@ printf "\n5. score using outputs\n" >> $LOG_FILE
 PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
+
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
     printf "> student id: ${tmp_sid}\n" >> $LOG_FILE
 
@@ -365,8 +368,7 @@ while read sid; do
     printf "\"dummy\" : \"dummy\"\n" >> "$result_json"
     printf "}\n" >> "$result_json"
 
-    ProgressBar ${PROGRESS_ITER} ${PROGRESS_SUBMIT_STUDENT}
-    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
 
 done < $STUDENT_LIST_SUBMITTED
 echo ""
@@ -381,11 +383,13 @@ PROGRESS_ITER=${PROGRESS_START}
 while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
 
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
+
     printf "> student id: ${tmp_sid}\n" >> $LOG_FILE
     ./_report_print.sh $tmp_sid
 
-    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
-    PROGRESS_ITER=$((PROGRESS_ITER+1))
+    
 done < $STUDENT_LIST
 echo ""
 
