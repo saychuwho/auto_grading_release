@@ -10,6 +10,8 @@ dos2unix ./_result_score.py
 dos2unix ./run_extra.sh
 dos2unix ./_result_moss.sh
 dos2unix ./_convert_file_name.py
+dos2unix ./_run_extra_onlyone.sh
+dos2unix ./run_output.sh
 
 chmod 755 ./run.sh
 chmod 755 ./reset.sh
@@ -17,3 +19,5 @@ chmod 755 ./_report_print.sh
 chmod 755 ./run_extra.sh
 chmod ug+x ./_moss.pl
 chmod 755 ./_result_moss.sh
+chmod 755 ./_run_extra_onlyone.sh
+chmod 755 ./run_output.sh

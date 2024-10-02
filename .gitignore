@@ -15,6 +15,7 @@ run_log.txt
 *_submitted.txt
 submission_by_problem/*/
 result_*.md
+result_*.txt
 
 # Exceptions
 

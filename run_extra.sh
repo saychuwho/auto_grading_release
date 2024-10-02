@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# run_extra : run extra student's grading after run.sh executed
-
+# run_extra : run _run_extra_onlyone.sh multiple times based on student_list_regrade.txt
 
 # code from https://github.com/fearside/ProgressBar
 # 1. Create ProgressBar function
-# 1.1 Input is currentState($1) and totalState($2)
+# 1.1 Input is currentState($1) and totalState($2) 
+# 1.2 modify ProgressBar extra_print($3)
 function ProgressBar {
 # Process data
     let _progress=(${1}*100/${2}*100)/100
@@ -18,10 +18,9 @@ function ProgressBar {
 # 1.2 Build progressbar strings and print the ProgressBar line
 # 1.2.1 Output example:                           
 # 1.2.1.1 Progress : [########################################] 100%
-printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%%"
+printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%% ${3}     "
 
 }
-
 
 # 0. Pre steps 
 # Prevent running sample.sh when it already executed.
@@ -31,187 +30,45 @@ if [ ! -f "./.runlock" ]; then
     exit 1
 fi
 
-STUDENT_ID=${1}
-
-# Get HW info
-HW_LIST="./hw_info.txt"
-declare -a HW_INFO
-while read value; do
-    HW_INFO+=($value)
-done < $HW_LIST
-
-HW_NAME=${HW_INFO[0]}
-HW_INFO_PROB_NUM=${HW_INFO[1]}
-HW_INFO_PROB_START=2
-HW_INFO_CASE_START=$((HW_INFO_PROB_START+HW_INFO_PROB_NUM))
-HW_INFO_LEN=${#HW_INFO[@]}
-
-HW_CASE_TOTAL_NUM=0
-
-# Set HW_PROB, HW_PROB_CASE
-declare -a HW_PROB
-declare -a HW_PROB_CASE
-
-for ((prob_num=$HW_INFO_PROB_START; prob_num<$HW_INFO_CASE_START; prob_num++)); do
-    HW_PROB+=( ${HW_INFO[prob_num]} )
-    case_index=$((prob_num+HW_INFO_PROB_NUM))
-    HW_PROB_CASE+=( ${HW_INFO[case_index]} )
-    HW_CASE_TOTAL_NUM=$((HW_CASE_TOTAL_NUM+HW_INFO[case_index]))
-done
-
-
-# check if student is in list or not.
-if [ $(echo "$STUDENT_ID" | grep -E '^[0-9]{9}' | wc -w) -eq 0 ]; then # student_id length is not valid
-    echo "${PROGNAME}: E: Invalid student_id length." >&2
-    exit 1
-elif [ $(grep "${STUDENT_ID}" ./student_list.txt | wc -w) -eq 0 ]; then # student_id is not in list
-    echo "${PROGNAME}: E: Invalid student_id. Does not exist in student list." >&2
-    exit 1
-fi
-
-
-echo "< $HW_NAME scoring system - extra for $STUDENT_ID >"
-
-if [ -d "./outputs/${STUDENT_ID}/" ]; then
-    rm -rf "./outputs/${STUDENT_ID}/"
-    mkdir "./outputs/${STUDENT_ID}"
-fi
-
-
-# 1. combine submission and case main
-
-printf "\n1. combine submission and cases\n"
-# copy student submission to make case main
-for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
-    prob_name="${HW_PROB[prob_num]}"
-    case_len="${HW_PROB_CASE[prob_num]}"
-
-    submission_file_name="$(ls ./student_submission/${STUDENT_ID}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$")"
-    submission_file="./student_submission/${STUDENT_ID}/${submission_file_name}"
-    
-
-    for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-        output_file="./outputs/${STUDENT_ID}/${HW_NAME}_${prob_name}_case_${case_num}_${STUDENT_ID}.cpp"
-        grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
-        
-
-        if [ -f "$submission_file" ]; then
-            # add header file if there are no header
-            is_header=$(cat "$submission_file" | grep '#include' | wc -l)
-            if [ $is_header -lt 1 ]; then
-                prob_header="./grading_cases/${HW_NAME}_${prob_name}_header.cpp"
-                cat "$prob_header" >> "$output_file"
-                printf "\n" >> "${output_file}"
-            fi
-
-
-            cat "${submission_file}" >> "${output_file}"
-            printf "\n" >> "${output_file}"
-            cat "${grading_case}" >> "${output_file}"
-
-            # remove zero witdh no-break space
-            cp "${output_file}" "${output_file}.tmp"
-            sed 's/\xEF\xBB\xBF//g' "${output_file}.tmp" > "${output_file}"
-            rm "${output_file}.tmp"
-
-        fi
-    done
-
-done
+# declare constants
+REGRADE_LIST="./student_list_regrade.txt"
+PROGRESS_START=1
+PROGRESS_TOTAL_STUDENT=$(cat $REGRADE_LIST | wc -l)
 
 
 
-# 2. compile cases and make outputs
-printf "\n2. compile cases and make outputs, make diff file\n"
+# hw1 extra - check recurssion
+printf "\n0-extra. hw1 extra - check recurssion\n"
 
-PROGRESS_ITER=1
-for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
-    prob_name=${HW_PROB[prob_num]}
-    case_len=${HW_PROB_CASE[prob_num]}
-    
-    
-    for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-
-        grading_case_1="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output_1.txt"
-        output_file="./outputs/${STUDENT_ID}/${HW_NAME}_${prob_name}_case_${case_num}_${STUDENT_ID}"
-        
-
-        if [ -f "${output_file}.cpp" ]; then
-            g++ -o "${output_file}.out" "${output_file}.cpp" > "${output_file}_compile_result.txt" 2>&1
-        else
-            continue
-        fi
-        
-        if [ "$(cat "${output_file}_compile_result.txt" | wc -l)" -ge 1 ]; then
-            printf " E: compile error\n" > /dev/null
-        else
-            "${output_file}.out" > "${output_file}_output.txt"
-            diff -uZB --strip-trailing-cr "${grading_case_1}" "${output_file}_output.txt" >> "${output_file}_output_1_diff.txt"
-        fi
-
-        ProgressBar ${PROGRESS_ITER} ${HW_CASE_TOTAL_NUM}
-        PROGRESS_ITER=$((PROGRESS_ITER+1))
-
-    done
-
-done
+./_prob_2_recurssion_detector.sh
 
 
 
-# 3. score submission with compile result & output diff
+# run multiple _run_extra_onlyone.sh
+printf "\n1. run multiple _run_extra_onlyone.sh\n"
 
-printf "\n\n3. score using outputs\n"
-
-result_json="./outputs/${STUDENT_ID}/${STUDENT_ID}_result.json"
-
-
-printf "{\n" >> $result_json
-
-for ((prob_num=0; prob_num<$HW_INFO_PROB_NUM; prob_num++)); do
-    prob_name="${HW_PROB[prob_num]}"
-    case_len="${HW_PROB_CASE[prob_num]}"
-
-    output_file="./outputs/${STUDENT_ID}/${HW_NAME}_${prob_name}_case_1_${STUDENT_ID}"
-    if [ ! -f "${output_file}_compile_result.txt" ]; then
-        printf "\"${prob_name}\" : \"file-not-submitted\",\n" >> "$result_json"
-    else
-        printf "\"${prob_name}\": \"file-submitted\",\n" >> "$result_json"
-    
-
-        for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
-
-            output_file="./outputs/${STUDENT_ID}/${HW_NAME}_${prob_name}_case_${case_num}_${STUDENT_ID}"
-            
-            if [ "$(cat "${output_file}_compile_result.txt" | wc -l)" -ge 1 ]; then
-                printf "\"${prob_name}-case-${case_num}\" : \"compile-error\",\n" >> "$result_json"
-            elif [ "$(cat "${output_file}_output_1_diff.txt" | wc -l)" -ge 1 ]; then
-                printf "\"${prob_name}-case-${case_num}\" : \"fail\",\n" >> "$result_json"
-            else
-                printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"
-            fi
-
-        done
+PROGRESS_ITER=${PROGRESS_START}
+while read sid; do
+    tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
+    if [ -z $tmp_sid ]; then
+        continue
     fi
 
-done
-printf "\"dummy\" : \"dummy\"\n" >> "$result_json"
-printf "}\n" >> "$result_json"
+    ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT} ${tmp_sid}
+    PROGRESS_ITER=$((PROGRESS_ITER+1))
 
+    ./_run_extra_onlyone.sh $tmp_sid
 
-# 4. Print Reports using print.sh
-printf "\n4. Print reports using _report_print.sh\n"
+done < $REGRADE_LIST
+ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT} ${tmp_sid}
 
-if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then
-    rm -rf ./reports/not_submitted/${STUDENT_ID}
-else
-    rm -rf ./reports/submitted/${STUDENT_ID}
-fi
-./_report_print.sh $STUDENT_ID
+echo ""
 
-
-
-# 5. Score student's submission based on result file and make one result.csv
-printf "\n5. Score student submission based on result file and make one result.csv\n"
+# re-execute _result_score.py
 python3 _result_score.py
 
-printf "\n<<< FINISHED >>>\n"
+printf "\n2. run _result_moss.sh\n"
+# re-execute _result_moss.sh
+./_result_moss.sh
+
+echo ""

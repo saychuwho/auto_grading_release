@@ -63,11 +63,12 @@ rm -rf ./reports/submitted/*
 # remove result files
 rm "./result.csv"
 rm "./result_score.csv"
-rm "./result_zip_not_submitted_list.md"
-rm "./result_file_not_submitted_list.md"
-rm "./result_compile_error.md"
-rm "./result_fail_list.md"
-rm "./result_moss.md"
+rm ./result_*.md
+rm ./result_*.txt
+
+# remove student_list_regrade.txt and make new one
+rm "./student_list_regrade.txt"
+printf "# student_list_regrade : put student id want to regrade using run_extra.sh" > "./student_list_regrade.txt"
 
 # remove log
 rm "./run_log.txt"

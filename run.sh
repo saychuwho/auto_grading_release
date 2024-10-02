@@ -199,6 +199,15 @@ done < $STUDENT_LIST_SUBMITTED
 echo ""
 
 
+
+# hw1 extra - check recurssion
+printf "\n2-extra. hw1 extra - check recurssion\n"
+printf "\n2-extra. hw1 extra - check recurssion\n" >> $LOG_FILE
+
+./_prob_2_recurssion_detector.sh
+
+
+
 # 3. combine submission and case main
 
 printf "\n3. combine submission and cases\n"
@@ -293,7 +302,7 @@ while read sid; do
             
 
             if [ -f "${output_file}.cpp" ]; then
-                g++ -o "${output_file}.out" "${output_file}.cpp" > "${output_file}_compile_result.txt" 2>&1
+                g++ -w -o "${output_file}.out" "${output_file}.cpp" > "${output_file}_compile_result.txt" 2>&1
             else
                 printf "E: file does not exist\n" >> $LOG_FILE
                 continue
@@ -358,9 +367,17 @@ while read sid; do
                 elif [ "$(cat "${output_file}_output_1_diff.txt" | wc -l)" -ge 1 ]; then
                     printf "\"${prob_name}-case-${case_num}\" : \"fail\",\n" >> "$result_json"
                 else
-                    printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"
+                    # hw1 extra - check recurssion
+                    if [ "$prob_name" = "2_A" -o "$prob_name" = "2_B" -o "$prob_name" = "2_C" ]; then
+                        if [ ! $(grep "${STUDENT_ID}" ./result_${prob_name}_no_recurssion.txt | wc -w) -eq 0 ]; then
+                            printf "\"${prob_name}-case-${case_num}\" : \"no-recurssion\",\n" >> "$result_json"    
+                        else
+                            printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"
+                        fi
+                    else
+                        printf "\"${prob_name}-case-${case_num}\" : \"pass\",\n" >> "$result_json"
+                    fi
                 fi
-
             done
         fi
 
