@@ -134,6 +134,7 @@ while read sid; do
 
         cp "$unzip_file_alter" "./student_submission/${HW_NAME}_tmpzip_${tmp_sid}.zip"
         unzip -O UTF-8 -o "$unzip_file_alter" -d "./student_submission/${tmp_sid}" > /dev/null
+
         printf "${tmp_sid}\n" >> "./student_list_submitted.txt" 
         printf ">>> unzip success\n" >> $LOG_FILE
     # student did not submitted zip file.
@@ -229,12 +230,21 @@ while read sid; do
         submission_file_name="$(ls ./student_submission/${tmp_sid}/ | grep -E "^${HW_NAME}_${prob_name}_" | grep -E ".cpp$")"
         submission_file="./student_submission/${tmp_sid}/${submission_file_name}"
         
+        # alter submission_file when student submitted files inside folder
+        is_alter=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*' | wc -w)
+        if [ $is_alter -gt 0 ]; then
+            alter_submission_folder_name=$(ls ./student_submission/${tmp_sid} -l | grep '^d' | grep -oP 'hw1_[\p{L}]*_[0-9]*')
+            alter_submission_file_name=$(ls ./student_submission/${tmp_sid}/${alter_submission_folder_name}/ | grep -E "_${prob_name}_")
+            alter_submission_file="./student_submission/${tmp_sid}/${alter_submission_folder_name}/${alter_submission_file_name}"
+        fi
+        
         printf "\n> student id: ${tmp_sid}\n" >> $LOG_FILE
 
         for ((case_num=1; case_num<$((case_len+1)); case_num++)); do
             output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}.cpp"
             grading_case="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}.cpp"
             
+
 
             if [ -f "$submission_file" ]; then
                 # add header file if there are no header
@@ -247,7 +257,6 @@ while read sid; do
 
                 # if there are main function in submission_file, delete it
                 sed -i '/int\s\+main\s*(.*)/,/^}/d' "$submission_file"
-
                 echo ">> ${HW_NAME}_${prob_name}: file submitted" >> $LOG_FILE
 
                 cat "${submission_file}" >> "${output_file}"
@@ -258,7 +267,6 @@ while read sid; do
                 cp "${output_file}" "${output_file}.tmp"
                 sed 's/\xEF\xBB\xBF//g' "${output_file}.tmp" > "${output_file}"
                 rm "${output_file}.tmp"
-
             
             else
                 echo ">> ${HW_NAME}_${prob_name}: file not submitted" >> $LOG_FILE
@@ -296,6 +304,7 @@ while read sid; do
             PROGRESS_ITER_INNER=$((PROGRESS_ITER_INNER+1))
 
             printf ">>> case ${case_num} > " >> $LOG_FILE
+
 
             grading_case_1="./grading_cases/${HW_NAME}_${prob_name}_case_${case_num}_output_1.txt"
             output_file="./outputs/${tmp_sid}/${HW_NAME}_${prob_name}_case_${case_num}_${tmp_sid}"
@@ -418,9 +427,11 @@ printf "\n7. Score student submission based on result file and make one result.c
 python3 _result_score.py
 
 
+
 # 8. Check Plagiarism with MOSS
 printf "\n8. Check Plagiarism with MOSS & make report\n"
 printf "\n8. Check Plagiarism with MOSS & make report\n" >> $LOG_FILE
+
 
 ./_result_moss.sh
 

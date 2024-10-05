@@ -4,7 +4,9 @@ DGIST CSE-201 Object Oriented Programming 수업 Assignment 채점에 사용되�
 
 bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경에서 동작합니다.
 
-*Assignment 1* 릴리즈 버전입니다. 
+
+*main* 릴리즈 버전입니다. *main branch는 demo version입니다. 실제 사용을 위해서는 개별 assignment repository를 참고해주세요.*
+
 
 자세한 코드 설명이 필요하다면 이 프로그램의 [샘플 버전 리포지토리](https://github.com/saychuwho/auto_grading)를 참조해주세요.
 
@@ -14,8 +16,16 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 - [Auto Assignment Grading Program Using Shell Scripts - Release](#auto-assignment-grading-program-using-shell-scripts---release)
   - [Tables](#tables)
+  - [Releases](#Releases)
+  - [Releases](#releases)
   - [How to use](#how-to-use)
   - [Bug Reported \& Feature added](#bug-reported--feature-added)
+
+## Releases
+
+현재까지 릴리즈한 버전은 다음과 같습니다. 
+
+- 2024-CSE201-Assignment-1 : 2024 DGIST OOP Assignment 1
 
 ## How to use
 
@@ -71,3 +81,11 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
   - 제출한 학생의 리포트랑 제출 안한 학생의 리포트를 별도의 폴더로 풀어서 관리함
   - 3번 문제의 case 2에서 컴파일 오류 문제를 발견해서 해결함
   - `python`을 실행할 때 `python3`로 실행하도록 해 파이썬 실행 문제가 없도록 함
+- 2024.09.19
+  - 학생들이 폴더를 통째로 압축해서 압축 해제하면 폴더가 있고 그 안에 제출물이 있는 경우가 있음
+    - 폴더의 이름이 제출 형식과 동일한 경우는 해결함
+  - 헤더 파일을 포함 안 한 채로 제출한 경우가 있음
+    - `grading_cases`에 각 문제 별 필요한 헤더를 `hw1_문제번호_header.cpp`와 같은 형식으로 추가하고, 헤더가 없는 경우에는 이 헤더를 추가해서 컴파일하도록 수정함
+  - 제출한 학생의 리포트랑 제출 안한 학생의 리포트를 별도의 폴더로 풀어서 관리함
+  - `python`을 실행할 때 `python3`로 실행하도록 해 파이썬 실행 문제가 없도록 함
+

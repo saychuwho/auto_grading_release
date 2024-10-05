@@ -66,7 +66,6 @@ print_source_code (){
     submission_file_name="$(ls ./student_submission/${2}/ | grep -E "^${HW_NAME}_${1}_" | grep -E ".cpp$")"
     submission_file="./student_submission/${2}/${submission_file_name}"
 
-
     if [[ -f "$submission_file" ]]; then
         echo '```c++'
         cat "$submission_file"
@@ -155,6 +154,7 @@ elif [ $(grep "${STUDENT_ID}" ./student_list.txt | wc -w) -eq 0 ]; then # studen
     echo "${PROGNAME}: E: Invalid student_id. Does not exist in student list." >&2
     exit 1
 fi
+
 
 # make directories
 if [ $(grep "${STUDENT_ID}" ./student_list_submitted.txt | wc -w) -eq 0 ]; then

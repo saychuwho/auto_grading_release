@@ -41,11 +41,11 @@ while read sid; do
     tmp_sid=$(echo "$sid" | grep -oe '^[0-9]*')
     rm -rf "./student_submission/${tmp_sid}"
     rm -rf "./outputs/${tmp_sid}"
-
     ProgressBar ${PROGRESS_ITER} ${PROGRESS_TOTAL_STUDENT}
     PROGRESS_ITER=$((PROGRESS_ITER+1))
 done < $STUDENT_LIST
 echo ""
+
 
 # remove student_list_submitted.txt
 rm *_submitted.txt
