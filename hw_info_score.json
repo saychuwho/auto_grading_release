@@ -37,22 +37,26 @@
     "2_A-case-1": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_A-case-2": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_A-case-3": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_A-case-4": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_B": {
         "zip-file-not-submitted" : 0,
@@ -62,22 +66,26 @@
     "2_B-case-1": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_B-case-2": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_B-case-3": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_B-case-4": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_C": {
         "zip-file-not-submitted" : 0,
@@ -87,22 +95,26 @@
     "2_C-case-1": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_C-case-2": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_C-case-3": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "2_C-case-4": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 0.5
+        "pass" : 0.5,
+        "no-recurssion" : 0.25
     },
     "3": {
         "zip-file-not-submitted" : 0,

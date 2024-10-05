@@ -15,5 +15,5 @@ void funcB(int n)
 
 int main()
 {
-    funcB(5);
+    funcB(7);
 }
