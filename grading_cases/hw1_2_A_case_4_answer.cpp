@@ -16,5 +16,5 @@ void funcA(int n)
 
 int main()
 {
-    funcA(7);
+    funcA(5);
 }

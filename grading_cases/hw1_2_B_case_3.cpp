@@ -1,4 +1,4 @@
 int main()
 {
-    funcB(5);
+    funcB(3);
 }

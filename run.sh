@@ -201,11 +201,11 @@ echo ""
 
 
 
-# hw1 extra - check recurssion
-printf "\n2-extra. hw1 extra - check recurssion\n"
-printf "\n2-extra. hw1 extra - check recurssion\n" >> $LOG_FILE
+# # hw1 extra - check recurssion
+# printf "\n2-extra. hw1 extra - check recurssion\n"
+# printf "\n2-extra. hw1 extra - check recurssion\n" >> $LOG_FILE
 
-./_prob_2_recurssion_detector.sh
+# ./_prob_2_recurssion_detector.sh
 
 
 
