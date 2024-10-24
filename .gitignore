@@ -17,6 +17,10 @@ run_log.txt
 submission_by_problem/*/
 result_*.md
 result_*.txt
+result_*.csv
+run_log_*.txt
+
+__pycache__/
 
 # Exceptions
 

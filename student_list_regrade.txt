@@ -1,1 +1,0 @@
-# student_list_regrade : put student id want to regrade using run_extra.sh

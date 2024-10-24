@@ -1,0 +1,69 @@
+=== Test Case 2: Fill to Capacity ===
+[Constructor] Constructing VendingMachine
+[Constructor] Constructing State: No Coin
+[Constructor] Constructing State: Has Coin
+[Constructor] Constructing State: Sold Out
+Action: Initialization | Current State: No Coin | Coin Value: 0
+[Constructor] Product created: Product1 (ID: 1, Price: $1)
+[Constructor] Product created: Product2 (ID: 2, Price: $1)
+[Constructor] Product created: Product3 (ID: 3, Price: $1)
+[Constructor] Product created: Product4 (ID: 4, Price: $1)
+[Constructor] Product created: Product5 (ID: 5, Price: $1)
+[Constructor] Product created: Product6 (ID: 6, Price: $1)
+[Constructor] Product created: Product7 (ID: 7, Price: $1)
+[Constructor] Product created: Product8 (ID: 8, Price: $1)
+[Constructor] Product created: Product9 (ID: 9, Price: $1)
+[Constructor] Product created: Product10 (ID: 10, Price: $1)
+Current Inventory:
+Product: Product1 (ID: 1, Price: $1)
+Product: Product2 (ID: 2, Price: $1)
+Product: Product3 (ID: 3, Price: $1)
+Product: Product4 (ID: 4, Price: $1)
+Product: Product5 (ID: 5, Price: $1)
+Product: Product6 (ID: 6, Price: $1)
+Product: Product7 (ID: 7, Price: $1)
+Product: Product8 (ID: 8, Price: $1)
+Product: Product9 (ID: 9, Price: $1)
+Product: Product10 (ID: 10, Price: $1)
+Total items: 10
+Action: State Changed | Current State: Has Coin | Coin Value: 1
+Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Action: State Changed | Current State: No Coin | Coin Value: 0
+[Destructor] Product destroyed: Product1 (ID: 1)
+Action: Dispense | Current State: No Coin | Coin Value: 0
+Action: State Changed | Current State: Has Coin | Coin Value: 1
+Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Action: State Changed | Current State: No Coin | Coin Value: 0
+[Destructor] Product destroyed: Product2 (ID: 2)
+Action: Dispense | Current State: No Coin | Coin Value: 0
+Action: State Changed | Current State: Has Coin | Coin Value: 1
+Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Action: State Changed | Current State: No Coin | Coin Value: 0
+[Destructor] Product destroyed: Product3 (ID: 3)
+Action: Dispense | Current State: No Coin | Coin Value: 0
+Action: State Changed | Current State: Has Coin | Coin Value: 1
+Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Action: State Changed | Current State: No Coin | Coin Value: 0
+[Destructor] Product destroyed: Product4 (ID: 4)
+Action: Dispense | Current State: No Coin | Coin Value: 0
+Action: State Changed | Current State: Has Coin | Coin Value: 1
+Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Action: State Changed | Current State: No Coin | Coin Value: 0
+[Destructor] Product destroyed: Product5 (ID: 5)
+Action: Dispense | Current State: No Coin | Coin Value: 0
+Current Inventory:
+Product: Product6 (ID: 6, Price: $1)
+Product: Product7 (ID: 7, Price: $1)
+Product: Product8 (ID: 8, Price: $1)
+Product: Product9 (ID: 9, Price: $1)
+Product: Product10 (ID: 10, Price: $1)
+Total items: 5
+[Destructor] Destructing VendingMachine
+[Destructor] Destructing State: No Coin
+[Destructor] Destructing State: Has Coin
+[Destructor] Destructing State: Sold Out
+[Destructor] Product destroyed: Product6 (ID: 6)
+[Destructor] Product destroyed: Product7 (ID: 7)
+[Destructor] Product destroyed: Product8 (ID: 8)
+[Destructor] Product destroyed: Product9 (ID: 9)
+[Destructor] Product destroyed: Product10 (ID: 10)
