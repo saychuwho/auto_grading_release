@@ -4,7 +4,7 @@ import subprocess
 import re
 import shutil
 
-from functions import has_dir, find_function, is_file_empty, progress_bar, find_line
+from functions import has_dir, find_function, is_file_empty, find_member_functions, find_line
 from report_print import ReportPrint
 
 
@@ -57,15 +57,18 @@ class AutoGradeStudent:
         if student_zip_res:
             student_zip = student_zip_res[0] 
             student_zip_file = f"./student_submission/{student_zip}"
-            self.zip_submitted = True
-
+        
             copy_zip_file = f'./student_submission/{self.hw_name}_{self.s_id}.zip'
             shutil.copy(student_zip_file, copy_zip_file)
 
             unzip_command = ['unzip','-O','UTF-8','-o', f'{copy_zip_file}', '-d', f'./student_submission/{self.s_id}']
-            subprocess.run(unzip_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)                        
-
-            self.log_write(f"\tunzip success\n")
+            unzip_result = subprocess.run(unzip_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)                        
+            
+            if unzip_result.returncode != 0:
+                self.log_write(f"\tE: unzip failed")
+            else:
+                self.zip_submitted = True
+                self.log_write(f"\tunzip success\n")
         else:
             self.log_write(f"\tE: no zip file submitted\n")
 
@@ -171,61 +174,51 @@ class AutoGradeStudent:
         combine_f.write(grading_header)
         combine_f.write("\n\n")
 
-        # special logic for hw2
-        combine_f.write(find_line(submission_file, "int Product::nextId"))
+        # class case: write class declaration and class member function
+        if is_class:
+            for k in range(self.class_num[iterator]):
+                # write class declaration
+                class_name = self.hw_pattern[f"{prob_name}-class"][str(k)].split()[1]
+                class_declare = find_function(submission_file, "class", class_name)
+                combine_f.write(class_declare)
+
+                # special logic for hw2
+                if class_name == "Product": 
+                    combine_f.write(find_line(submission_file, "int Product::nextId"))
+                    combine_f.write(find_line(submission_file, "int Product :: nextId"))
+                    combine_f.write(find_line(submission_file, "int Product::nextID"))
+
+
+                self.log_write(f"\n\nclass block\nclass_name: {class_name}:\n{class_declare}\n")
+
+                combine_f.write("\n\n")
+
+                # write class member functions if it exist
+                class_member_func_list = find_member_functions(submission_file, class_name, log_write=self.log_write)
+
+                self.log_write(f"\n\nclass_member_func_list:\n{class_member_func_list}\n")
+
+                if len(class_member_func_list) != 0:
+                    for member_block in class_member_func_list:
+                        if len(member_block) != 0:
+                            combine_f.write(member_block)
+
+                            self.log_write(f"\n\n{k} member block:\n{member_block}\n")
+
+                            combine_f.write("\n\n")
 
         # find functions in submitted code and combine it in output file.
-        for k in range(self.function_num[iterator]):
-            if is_class:
-                self.log_write(f">> {prob_name}-function-{k}:\n")
-
-                # find first pattern from submission_file
-                func_return_type_1 = self.hw_pattern[prob_name][f"{k}-1"].split()[0]
-                if func_return_type_1 == "none": func_return_type_1 = ""
-
-                func_name_1 = self.hw_pattern[prob_name][f"{k}-1"].split()[1]
-
-                func_block_1 = find_function(submission_file, func_return_type_1, func_name_1)
-                if func_block_1 != "":
-                    combine_f.write(func_block_1)
-
-                # find second pattern inside class
-                else:
-                    func_class_2 = self.hw_pattern[prob_name][f"{k}-2"].split()[0]
-                    func_return_type_2 = self.hw_pattern[prob_name][f"{k}-2"].split()[1]
-                    if func_return_type_2 == "none": func_return_type_2 = ""
-
-                    func_name_2 = self.hw_pattern[prob_name][f"{k}-2"].split()[2]
-                    class_block = find_function(submission_file, "class", func_class_2)
-                    class_block = re.sub(fr'^class {func_class_2}', '', class_block)
-
-                    func_block_2 = find_function(class_block, func_return_type_2, func_name_2, is_path=False)
-                
-                    # add class in front of function for constructor & destructor
-                    if func_return_type_2 == "": 
-                        func_block_2 = re.sub(fr'^{func_name_2}', f'{func_class_2}::{func_name_2}', func_block_2)
-                    else:
-                        # consider * case: * do special work in regex. so change * into \*
-                        if '*' in func_return_type_2:
-                            tmp = list(func_return_type_2)
-                            for i, ch in enumerate(tmp):
-                                if ch == '*': tmp[i] = '\\*'
-                            func_return_type_2_regex = ''.join(tmp)
-                        else: func_return_type_2_regex = func_return_type_2
-                        func_block_2 = re.sub(fr'^{func_return_type_2_regex} ', f'{func_return_type_2} {func_class_2}::', func_block_2)
-
-                    combine_f.write(func_block_2)
-
-            else:
+        else:
+            for k in range(self.function_num[iterator]):
                 func_return_type = self.hw_pattern[prob_name][str(k)].split()[0]
                 func_name = self.hw_pattern[prob_name][str(k)].split()[1]
                 func_block = find_function(submission_file, func_return_type, func_name)
                 
                 combine_f.write(func_block)
-            combine_f.write("\n\n")
+                combine_f.write("\n\n")
 
         # write grading case's main function
-        if not is_class: combine_f.write(grading_case)
+        combine_f.write(grading_case)
         combine_f.write("\n\n")
 
         combine_f.close()
@@ -249,13 +242,16 @@ class AutoGradeStudent:
 
             submission_file=f"./student_submission/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
             
-            if is_class:    # when class is in submission
-                self.log_write(f"\t>> class submission\n")
+            if is_class: self.log_write(f"\t>> class submission\n")
+            else: self.log_write(f"\t>> default submission\n")
 
-                output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
+            for j in range(self.case_num[i]):
+                output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}.cpp"
+                grading_case_file = f"./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}.cpp"
                 grading_header_file = f"./grading_cases/{self.hw_name}_{prob_name}_header.cpp"
+                with open(grading_case_file, 'r') as f: grading_case = f.read()
                 with open(grading_header_file, 'r') as f: grading_header = f.read()
-                grading_case = None
+
                 # combine file if student submitted code for problem
                 if self.file_submitted[prob_name]:
                 
@@ -268,34 +264,9 @@ class AutoGradeStudent:
                     with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
                     
 
-                    self.log_write(f"\t>>>> {self.s_id}: combined {prob_name}\n")
+                    self.log_write(f"\t>>>> {self.s_id}: combined {prob_name}-{j+1}\n")
                 else:
                     self.log_write(f"\t>>>> {self.s_id}: not submitted {prob_name}\n")
-
-            else:           # when class is not in submission
-                self.log_write(f"\t>> default submission\n")
-                for j in range(self.case_num[i]):
-                    output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}.cpp"
-                    grading_case_file = f"./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}.cpp"
-                    grading_header_file = f"./grading_cases/{self.hw_name}_{prob_name}_header.cpp"
-                    with open(grading_case_file, 'r') as f: grading_case = f.read()
-                    with open(grading_header_file, 'r') as f: grading_header = f.read()
-
-                    # combine file if student submitted code for problem
-                    if self.file_submitted[prob_name]:
-                    
-                        self.__write_functions(i, output_file, grading_header, prob_name,
-                                            submission_file, grading_case, is_class=is_class)
-                        
-                        # remove zero witdh no-break space : This issue happens often
-                        with open(output_file, 'r') as combine_f: combine_code = combine_f.read()
-                        combine_code = combine_code.replace('\xEF\xBB\xBF', '')
-                        with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
-                        
-
-                        self.log_write(f"\t>>>> {self.s_id}: combined {prob_name}\n")
-                    else:
-                        self.log_write(f"\t>>>> {self.s_id}: not submitted {prob_name}\n")
 
         self.log_write(f"\n")
         
@@ -313,9 +284,6 @@ class AutoGradeStudent:
         self.log_write(f"\n>> {self.s_id} compile cases and make outputs, make diff file\n")
         
         for i, prob_name in enumerate(self.prob_names):
-            if self.class_num[i] > 0: is_class = True
-            else: is_class = False
-
             self.log_write(f"\t{self.s_id} : {prob_name}\n")
             for j in range(self.case_num[i]):
 
@@ -328,16 +296,7 @@ class AutoGradeStudent:
 
                 # compile combined source code
                 if self.file_submitted[prob_name]:
-                    if not is_class:
-                        self.log_write("default)") 
-                        
-                        gcc_command = ['g++', '-w', '-o', f"{output_file}.out", f"{output_file}.cpp"]
-                    else:
-                        self.log_write("class)")
-                        output_file_1 = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}"
-                        gcc_command = ['g++', '-w', f'./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}.cpp',
-                                       f'{output_file_1}.cpp', f'./grading_cases/{self.hw_name}_{prob_name}_header.h',
-                                       '-o', f'{output_file}.out']
+                    gcc_command = ['g++', '-w', '-o', f"{output_file}.out", f"{output_file}.cpp"]
                     subprocess_result = subprocess.run(gcc_command, capture_output=True, text=True)
                     with open(f"{output_file}_compile_result.txt", 'w') as f: f.write(subprocess_result.stderr)
                     
@@ -419,7 +378,12 @@ class AutoGradeStudent:
 
     def run_output(self, prob_name, case_num):
         output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{case_num}_{self.s_id}"
+        
+        if not os.path.isfile(f"{output_file}.out"): return False
+
         run_output_command = ['timeout', '10s', f"{output_file}.out"]
         subprocess.run(run_output_command)
+
+        return True
         
     

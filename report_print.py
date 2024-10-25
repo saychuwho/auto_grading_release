@@ -67,39 +67,31 @@ class ReportPrint:
         return write_str
 
 
-    def __print_source_code(self, prob_name, is_class=False):
+    def __print_source_code(self, prob_name):
         sourcecode_file = f"./student_submission/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
         
         write_str = f"\n### submitted problem-{prob_name} source code\n"
         
-        if is_class:
-            class_member_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
-            if os.path.isfile(class_member_file):
-                with open(class_member_file, "r", errors="replace") as f: class_member_code = f.read()
-                write_str += f"\n```c++\n{class_member_code}\n```\n"
-            else:
-                write_str += f"no submitted problem-{prob_name} source code.\n"
+        if os.path.isfile(sourcecode_file):
+            with open(sourcecode_file, "r", errors="replace") as f: source_code = f.read()
+            write_str += f"\n```c++\n{source_code}\n```\n"
         else:
-            if os.path.isfile(sourcecode_file):
-                with open(sourcecode_file, "r", errors="replace") as f: source_code = f.read()
-                write_str += f"\n```c++\n{source_code}\n```\n"
-            else:
-                write_str += f"no submitted problem-{prob_name} source code.\n"
+            write_str += f"no submitted problem-{prob_name} source code.\n"
 
         return write_str
 
 
-    def __print_compile_code(self, prob_name, case_num, is_class=False):
+    def __print_compile_code(self, prob_name, case_num):
         compiled_code_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{case_num}_{self.s_id}.cpp"
 
         write_str = ""
-        if not is_class:
-            write_str += f"\n### compiled problem-{prob_name}-case-{case_num} code\n"
-            if os.path.isfile(compiled_code_file):
-                with open(compiled_code_file, "r") as f: compiled_code = f.read()
-                write_str += f"\n```c++\n{compiled_code}\n```\n"
-            else:
-                write_str += f"no compiled problem-{prob_name}-case-{case_num} code"
+
+        write_str += f"\n### compiled problem-{prob_name}-case-{case_num} code\n"
+        if os.path.isfile(compiled_code_file):
+            with open(compiled_code_file, "r") as f: compiled_code = f.read()
+            write_str += f"\n```c++\n{compiled_code}\n```\n"
+        else:
+            write_str += f"no compiled problem-{prob_name}-case-{case_num} code"
 
         return write_str
 
@@ -162,17 +154,12 @@ class ReportPrint:
 
             write_str_submit_compile += "\n## Submitted Source Code\n"
             for i, prob_name in enumerate(self.prob_names):
-                tmp_is_class = False
-                if self.class_num[i] > 0: tmp_is_class = True
-                write_str_submit_compile += self.__print_source_code(prob_name, tmp_is_class)
+                write_str_submit_compile += self.__print_source_code(prob_name)
             
             write_str_submit_compile += "\n## Compiled code & compiled result\n" 
             for i, prob_name in enumerate(self.prob_names):
-                tmp_is_class = False
-                if self.class_num[i] > 0: tmp_is_class = True
-
                 for j in range(self.case_nums[i]):
-                    write_str_submit_compile += self.__print_compile_code(prob_name, j+1, tmp_is_class)
+                    write_str_submit_compile += self.__print_compile_code(prob_name, j+1)
                     write_str_submit_compile += self.__print_compile_result(prob_name, j+1)
 
             write_str_output_diff += "\n## Output result & diff result\n"

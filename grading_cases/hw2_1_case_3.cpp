@@ -1,9 +1,3 @@
-#include <iostream>
-#include <string>
-
-#include "hw2_1_header.h"
-
-
 int main() { 
     cout << "=== Test Case 3: Different Coin Denominations ===" << endl; 
     VendingMachine machine3; 

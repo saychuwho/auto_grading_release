@@ -388,7 +388,8 @@ class AutoGrader():
 
     def run_output(self, s_id, prob_name, case_num):
         student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-        student_grader.run_output(prob_name, case_num)
+        return student_grader.run_output(prob_name, case_num)
+        
 
 
 def main():

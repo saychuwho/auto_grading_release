@@ -17,11 +17,11 @@ had_run = os.path.isfile(lock_file)
 
 # argument define
 parser = argparse.ArgumentParser()
-parser.add_argument('--option', help='option for run', type=str, default='all')
+parser.add_argument('--option', nargs='*', help='option for run', type=str, default=['all'])
 
 args = parser.parse_args()
 
-option = args.option
+option = args.option[0]
 
 grader = AutoGrader()
 
@@ -70,7 +70,7 @@ elif option == 'regrade':
         counter += 1
 
     for s_id in regrade_list:
-        progress_bar(counter+1, total_count, prefix="Progress: Regrade ", suffix=f"{s_id}   ", length=50)
+        progress_bar(counter+1, total_count, prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
         grader.regrade_student(s_id)
         counter += 1
 
@@ -102,14 +102,12 @@ elif option == "run_output":
 
     if not had_run: exit_with_message("E: Did not run Grade All option", grader)
     
-    run_output_option_list = input("put s_id prob_name case_num: ").split()
-
-    if len(run_output_option_list) != 3:
+    if len(args.option) != 4:
         exit_with_message("E: invalid run_output_option", grader)
     
-    s_id = int(run_output_option_list[0])
-    prob_name = run_output_option_list[1]
-    case_num = int(run_output_option_list[2])
+    s_id = int(args.option[1])
+    prob_name = args.option[2]
+    case_num = int(args.option[3])
 
     if not s_id in grader.student_list:
         exit_with_message("E: invalid student id", grader)
@@ -120,34 +118,23 @@ elif option == "run_output":
 
     print(f">> output of {s_id}'s {grader.hw_name} prob {prob_name} case {case_num}\n")
 
-    grader.run_output(s_id, prob_name, case_num)
+    result = grader.run_output(s_id, prob_name, case_num)
+
+    if not result: exit_with_message(f"E: No output for student {s_id} {prob_name}-case-{case_num}", grader)
 
     print("<<< FINISHED >>>")
     grader.log_write("<<< FINISHED >>>\n")
     
-elif option == "add_func_pattern":
-    print("<<< Add Function Pattern in hw_pattern.json >>>")
-    with open('./hw_info.json', 'r') as f: hw_info_dict = json.load(f)
-    with open('./hw_pattern.json', 'r') as f: hw_pattern_dict = json.load(f)
 
-    get_input = input("put prob_name class func_return_type func_name\nif function is not in class, put 'none' in class\n: ")
-
-    prob_name, class_name, func_return_type, func_name = get_input.split()
-
-    if not prob_name in grader.prob_names:
-        exit_with_message("E: invalid prob name", grader)
+elif option == "MOSS":
+    print("<<< run MOSS analysis Mode >>>")
     
-    func_num = int(hw_info_dict["function_num"])
-    hw_info_dict["function_num"] = str(func_num + 1)
-    hw_pattern_dict[prob_name][f"{func_num}-1"] = f"{func_return_type} {class_name}::{func_name}"
-    hw_pattern_dict[prob_name][f"{func_num}-2"] = f"{class_name} {func_return_type} {func_name}"
+    if not had_run: exit_with_message("E: Did not run Grade All option", grader)
 
-    with open('./hw_info.json', 'w') as f: json.dump(hw_info_dict, f, indent=4)
-    with open('./hw_pattern.json', 'w') as f: json.dump(hw_pattern_dict, f, indent=4)
+    grader.result_moss()
 
     print("<<< FINISHED >>>")
     grader.log_write("<<< FINISHED >>>\n")
-
 
 
 else:

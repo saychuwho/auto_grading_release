@@ -29,13 +29,7 @@
         "13-1": "double VendingMachine::getProductPrice",
         "13-2": "VendingMachine double getProductPrice",
         "14-1": "void VendingMachine::displayInventory",
-        "14-2": "VendingMachine void displayInventory",
-        "15-1": "void VendingMachine::removeProduct",
-        "15-2": "VendingMachine void removeProduct",
-        "16-1": "int VendingMachine::addProduct",
-        "16-2": "VendingMachine int addProduct",
-        "17-1": "int Product::getID",
-        "17-2": "Product int getID"
+        "14-2": "VendingMachine void displayInventory"
     },
     "1-class": {
         "0": "class Product",

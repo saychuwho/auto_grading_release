@@ -19,6 +19,7 @@ result_*.md
 result_*.txt
 result_*.csv
 run_log_*.txt
+*.rar
 
 __pycache__/
 

@@ -1,8 +1,3 @@
-#include <iostream>
-#include <string>
-
-#include "hw2_1_header.h"
-
 int main() { 
     cout << "=== Test Case 2: Fill to Capacity ===" << endl; 
     VendingMachine machine2; 

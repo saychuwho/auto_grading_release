@@ -25,6 +25,7 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 현재까지 릴리즈한 버전은 다음과 같습니다. 
 
 - 2024-CSE201-Assignment-1 : 2024 DGIST OOP Assignment 1
+- 2024-CSE202-Assignment-2 : 2024 DGIST OOP Assignment 2
 
 ## How to use
 
@@ -32,6 +33,13 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2024.10.25
+  - Major Update: shell script에서 python script로 코드를 뜯어 고쳤습니다. 
+  - Assignment 2 Release 버전을 출시했습니다. 
+  - 이전 Assignment 1과 달라진 기능은 다음과 같습니다.
+    - MOSS 결과를 실행할 때마다 뽑는 것이 아니라, 별도의 `MOSS` 옵션을 실행해야 뽑는 것으로 바꿈.
+    - `regrade` 옵션에서 다시 채점할 학생 목록을 자동으로 만들도록 바꿈.
+    - `run_output` 옵션을 만들어서 컴파일 된 학생의 결과물을 수동으로 실행할 수 있도록 만듬.
 - 2024.10.02
   - (기능추가) `run_extra.sh`를 여러 학생들을 받아서 처리할 수 있도록 수정함. 기존 `run_extra.sh`는 `_run_extra_onlyone.sh`로 넘어감. `student_list_regrade.txt`에 다시 채점하고 싶은 학생의 학번을 넣으면 채점할 수 있음.
   - g++ 컴파일 옵션에 warning을 끔.
