@@ -182,7 +182,7 @@ class AutoGradeStudent:
                 class_declare = find_function(submission_file, "class", class_name)
                 combine_f.write(class_declare)
 
-                # special logic for hw2
+                # SPECIAL LOGIC FOR HW2
                 if class_name == "Product": 
                     combine_f.write(find_line(submission_file, "int Product::nextId"))
                     combine_f.write(find_line(submission_file, "int Product :: nextId"))
@@ -218,8 +218,9 @@ class AutoGradeStudent:
                 combine_f.write("\n\n")
 
         # write grading case's main function
-        combine_f.write(grading_case)
-        combine_f.write("\n\n")
+        if grading_case != None:
+            combine_f.write(grading_case)
+            combine_f.write("\n\n")
 
         combine_f.close()
 
@@ -262,11 +263,29 @@ class AutoGradeStudent:
                     with open(output_file, 'r') as combine_f: combine_code = combine_f.read()
                     combine_code = combine_code.replace('\xEF\xBB\xBF', '')
                     with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
-                    
 
                     self.log_write(f"\t>>>> {self.s_id}: combined {prob_name}-{j+1}\n")
                 else:
                     self.log_write(f"\t>>>> {self.s_id}: not submitted {prob_name}\n")
+
+
+            # SPECIAL LOGIC FOR HW2 - copy class member function file to submission_by_problem
+            tmp_output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}_class_member.cpp"
+            tmp_grading_header_file = f"./grading_cases/{self.hw_name}_{prob_name}_header.cpp"
+            with open(tmp_grading_header_file, 'r') as f: tmp_grading_header = f.read()
+            if self.file_submitted[prob_name]:
+                self.__write_functions(iterator=0, output_file=tmp_output_file, grading_header=tmp_grading_header,
+                                       prob_name="1", submission_file=submission_file, grading_case=None, is_class=True)
+                
+                # remove zero witdh no-break space : This issue happens often
+                with open(output_file, 'r') as combine_f: combine_code = combine_f.read()
+                combine_code = combine_code.replace('\xEF\xBB\xBF', '')
+                with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
+
+                if not os.path.isdir(f"./submission_by_problem/{prob_name}-class"): os.mkdir(f"./submission_by_problem/{prob_name}-class")
+                submission_by_problem_file_name = f"./submission_by_problem/{prob_name}-class/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
+                shutil.copy(tmp_output_file, submission_by_problem_file_name)
+                
 
         self.log_write(f"\n")
         

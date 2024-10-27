@@ -20,6 +20,14 @@ result_*.txt
 result_*.csv
 run_log_*.txt
 *.rar
+*.7z
+
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
+tmp/
 
 __pycache__/
 

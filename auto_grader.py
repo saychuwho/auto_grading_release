@@ -304,9 +304,8 @@ class AutoGrader():
         write_str_moss = f"# MOSS result of all problems in {self.hw_name}\n\n"
         write_str_moss += "click the link below to see each problems's MOSS report\n\n"
 
-        total=len(self.prob_names)
-        for i, prob_name in enumerate(self.prob_names):
-            progress_bar(i+1, total, prefix="Progress: MOSS", suffix=f"{prob_name}", length=50)
+        for prob_name in self.prob_names:
+            print(f">> Progress: {prob_name}")
 
             moss_command = f'./_moss.pl -l cc ./submission_by_problem/{prob_name}/*.cpp'
             subprocess_result = subprocess.run(moss_command, shell=True, capture_output=True, text=True)
@@ -314,6 +313,13 @@ class AutoGrader():
             write_str_moss += f"{prob_name} : {link_str}\n"
         
         write_str_moss += "\n"
+
+        # SPECIAL LOGIC - HW2: give MOSS class member file too
+        print(f">> Progress: 1-class member")
+        moss_command = f'./_moss.pl -l cc ./submission_by_problem/1-class/*.cpp'
+        subprocess_result = subprocess.run(moss_command, shell=True, capture_output=True, text=True)
+        link_str = subprocess_result.stdout.split('\n')[-2]
+        write_str_moss += f"1-class : {link_str}\n"
 
         with open(moss_report_file, "w") as f: f.write(write_str_moss)
 
