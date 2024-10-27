@@ -58,19 +58,23 @@ elif option == 'regrade':
     with open('./student_list_regrade.txt', 'r') as f: regrade_list = list(map(int, f.readlines()))
     
     counter = 1
-    total_count = len(regrade_zip) + len(regrade_list) - 1
 
+    print(">> Regrade student - zip not submitted")
+    grader.log_write(">> Regrade student - zip not submitted\n")
     for s_id_str in regrade_zip:
         if s_id_str[0] == 's': continue
         s_id = int(s_id_str.strip().strip(','))
         
-        progress_bar(counter+1, total_count, prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
+        progress_bar(counter+1, len(regrade_zip), prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
 
         grader.regrade_student(s_id, True)
         counter += 1
 
+    counter = 1
+    print(">> Regrade student - zip submitted")
+    grader.log_write(">> Regrade student - zip submitted\n")
     for s_id in regrade_list:
-        progress_bar(counter+1, total_count, prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
+        progress_bar(counter+1, len(regrade_list), prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
         grader.regrade_student(s_id)
         counter += 1
 
