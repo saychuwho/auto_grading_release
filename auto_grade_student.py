@@ -225,11 +225,14 @@ class AutoGradeStudent:
         combine_f.close()
 
 
-    def combine_submission(self):
+    def combine_submission(self, is_regrade=False):
         """
         Make source code to compile.
         Find functions in student's submission with self.hw_pattern to make compiling code.
         Add problem's header in ./grading_cases 
+
+        Args:
+            is_regrade (bool, optional): Use it at regrade mode. Defaults to False.
         """        
         self.log_write(f"\n>> {self.s_id} combine submission to make case main\n")
         
@@ -243,6 +246,10 @@ class AutoGradeStudent:
 
             submission_file=f"./student_submission/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
             
+            # turn self.file_submitted[prob_name] to True at regrade mode
+            if is_regrade:
+                if os.path.isfile(submission_file): self.file_submitted[prob_name] = True
+
             if is_class: self.log_write(f"\t>> class submission\n")
             else: self.log_write(f"\t>> default submission\n")
 
