@@ -4,9 +4,7 @@ DGIST CSE-201 Object Oriented Programming 수업 Assignment 채점에 사용되�
 
 bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경에서 동작합니다.
 
-
-*Assignment 2* 릴리즈 버전입니다.
-
+*main* 릴리즈 버전입니다. *main branch는 demo version입니다. 실제 사용을 위해서는 개별 assignment repository를 참고해주세요.*
 
 자세한 코드 설명이 필요하다면 이 프로그램의 [샘플 버전 리포지토리](https://github.com/saychuwho/auto_grading)를 참조해주세요.
 
@@ -18,7 +16,8 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
   - [Tables](#tables)
   - [Releases](#releases)
   - [How to use](#how-to-use)
-  - [Bug Reported \& Feature added](#bug-reported--feature-added)
+  - [Troubleshooting](#troubleshooting)
+  - [Bug Reports](#bug-reports)
 
 ## Releases
 
