@@ -70,7 +70,7 @@ elif option == 'regrade':
         grader.regrade_student(s_id, True)
         counter += 1
 
-    counter = 0
+    counter = 1
     print(">> Regrade student - zip submitted")
     grader.log_write(">> Regrade student - zip submitted\n")
     for s_id in regrade_list:

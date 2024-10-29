@@ -338,7 +338,7 @@ class AutoGrader():
                 student_grader.change_file_names()
         
         if self.student_list_dict[str(s_id)] == "zip-submitted":
-            student_grader.combine_submission(True)
+            student_grader.combine_submission()
             student_grader.compile_case_make_output(False)
             student_grader.score_using_output()
             student_grader.print_reports()
