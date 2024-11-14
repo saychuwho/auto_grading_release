@@ -52,39 +52,7 @@ elif option == 'regrade':
     grader.log_write("<<< Regrade Mode >>>\n")
     if not had_run: exit_with_message("E: Did not run Grade All option", grader)
 
-    # regrade zip-not-submitted
-    with open('./result_zip_not_submitted_list.csv', 'r') as f: regrade_zip = f.readlines()    
-    # regrade else
-    with open('./student_list_regrade.txt', 'r') as f: regrade_list = list(map(int, f.readlines()))
-    
-    counter = 1
-
-    print(">> Regrade student - zip not submitted")
-    grader.log_write(">> Regrade student - zip not submitted\n")
-    for s_id_str in regrade_zip:
-        if s_id_str[0] == 's': continue
-        s_id = int(s_id_str.strip().strip(','))
-        
-        progress_bar(counter+1, len(regrade_zip), prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
-
-        grader.regrade_student(s_id, True)
-        counter += 1
-
-    counter = 1
-    print(">> Regrade student - zip submitted")
-    grader.log_write(">> Regrade student - zip submitted\n")
-    for s_id in regrade_list:
-        progress_bar(counter+1, len(regrade_list), prefix="Progress: Regrade", suffix=f"{s_id}   ", length=50)
-        grader.regrade_student(s_id)
-        counter += 1
-
-    grader.dump_student_list()
-
-    grader.result_score()
-
-    print()
-
-    # grader.result_moss()
+    grader.regrade_students()
 
     print("<<< FINISHED >>>")
     grader.log_write("<<< FINISHED >>>\n")
@@ -141,7 +109,18 @@ elif option == "MOSS":
     grader.log_write("<<< FINISHED >>>\n")
 
 
+elif option == "log_delete":
+    print("<<< Log Delete Mode >>>")
+
+    for file_name in os.listdir('./log/'):
+        file_path = os.path.join('./log/', file_name)
+        if os.path.isfile(file_path) and file_path.endswith('.txt'):
+            os.remove(file_path)
+
+    print("<<< FINISHED >>>")
+
+
 else:
-    print("E: Usage: python3 main.py [--option all/regrade/reset]")
-    grader.log_write("E: Usage: python3 main.py [--option all/regrade/reset]\n")
+    print("E: Usage: python3 main.py [--option (all/regrade/reset/run_output/MOSS)]")
+    grader.log_write("E: Usage: python3 main.py [--option (all/regrade/reset/run_output/MOSS)]\n")
     exit(1)

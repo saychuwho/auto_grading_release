@@ -7,29 +7,9 @@
     "1-case-1": {
         "compile-error" : 0,
         "fail" : 0,
-        "pass" : 2
+        "pass" : 10
     },
     "1-case-2": {
-        "compile-error" : 0,
-        "fail" : 0,
-        "pass" : 2
-    },
-    "1-case-3": {
-        "compile-error" : 0,
-        "fail" : 0,
-        "pass" : 2
-    },
-    "1-case-4": {
-        "compile-error" : 0,
-        "fail" : 0,
-        "pass" : 2
-    },
-    "1-case-5": {
-        "compile-error" : 0,
-        "fail" : 0,
-        "pass" : 2
-    },
-    "1-case-6": {
         "compile-error" : 0,
         "fail" : 0,
         "pass" : 5

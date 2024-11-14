@@ -3,6 +3,7 @@ import os
 import subprocess
 import re
 import shutil
+import multiprocessing
 
 from functions import has_dir, find_function, is_file_empty, find_member_functions, find_line
 from report_print import ReportPrint
@@ -10,13 +11,11 @@ from report_print import ReportPrint
 
 class AutoGradeStudent:
     def __init__(self, s_id: int, 
-                 log_file: str, 
                  hw_info_dict: dict, 
                  hw_pattern_dict: dict,
                  zip_submitted = False):
         # information of grading
         self.s_id = s_id
-        self.log_file = log_file
         self.hw_name = hw_info_dict['hw_name']
         self.prob_names = hw_info_dict['prob_name']     # contains hw's prob_name
         self.case_num = hw_info_dict['case_num']        # contains case num per prob_name
@@ -27,18 +26,6 @@ class AutoGradeStudent:
         # student's case status
         self.zip_submitted = zip_submitted
         self.file_submitted = {prob_name: False for prob_name in self.prob_names}
-        self.compile_success = {prob_name: [False for _ in range(self.case_num[i])] for i, prob_name in enumerate(self.prob_names)}
-
-
-
-    def log_write(self, str):
-        """
-        Write log string into self.log_file
-
-        Args:
-            str (str): log string to write
-        """        
-        with open(self.log_file, "a") as f: f.write(str)
 
 
     def unzip_submission(self):
@@ -47,12 +34,15 @@ class AutoGradeStudent:
         Rename the zip file's name with using self.hw_name, self.s_id
 
         Returns:
-            bool: return True if student submitted zip file.
+            self.zip_submitted: return True if student submitted zip file.
+            ret_log: return log string
         """        
+        ret_log = ""
+
         zip_list = os.listdir("./student_submission/")
         student_zip_res = [x for x in zip_list if re.search(fr'{self.s_id}', x)]
         
-        self.log_write(f">> {self.s_id} unzip files:\n")
+        ret_log += f">> {self.s_id} unzip files:\n"
         
         if student_zip_res:
             student_zip = student_zip_res[0] 
@@ -65,14 +55,14 @@ class AutoGradeStudent:
             unzip_result = subprocess.run(unzip_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)                        
             
             if unzip_result.returncode != 0:
-                self.log_write(f"\tE: unzip failed")
+                ret_log += f"\tE: unzip failed"
             else:
                 self.zip_submitted = True
-                self.log_write(f"\tunzip success\n")
+                ret_log += f"\tunzip success\n"
         else:
-            self.log_write(f"\tE: no zip file submitted\n")
+            ret_log += f"\tE: no zip file submitted\n"
 
-        return self.zip_submitted
+        return self.zip_submitted, ret_log
 
 
     def __is_function_inside_file(self, submit_file_content, prob_name, is_class=False):
@@ -109,13 +99,18 @@ class AutoGradeStudent:
         If student's submission contains folder, find .cpp files and copy it into parent directory
         Find student's problem submission with function name pattern in self.hw_pattern.
         Copy submitted source code into ./submission_by_problem. These files are used in MOSS plagirism detection.
+
+        Returns:
+            str : return log string
         """        
-        self.log_write(f"\n>> {self.s_id} change file name into correct format:\n")
+        ret_log = ""
+
+        ret_log += f"\n>> {self.s_id} change file name into correct format:\n"
 
         # copy .cpp files into student_id folder if cpp file is in folder
         student_dir = f"./student_submission/{self.s_id}"
         if has_dir(student_dir):
-            self.log_write(f"\tfolder detected. copy files out from folder.\n")
+            ret_log += f"\tfolder detected. copy files out from folder.\n"
             cpp_files = []
             for root, _, files in os.walk(student_dir):
                 for file in files:
@@ -152,19 +147,20 @@ class AutoGradeStudent:
                 dos2unix_command = ['dos2unix', correct_file_name]
                 subprocess.run(dos2unix_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                self.log_write(f"\trewrite {prob_name} file name into correct format.\n")
+                ret_log += f"\trewrite {prob_name} file name into correct format.\n"
                 self.file_submitted[prob_name] = True
             else:
-                self.log_write(f"\tE: {prob_name} sorce code not submitted")
+                ret_log += f"\tE: {prob_name} sorce code not submitted"
                 continue
 
             # copy files into submission_by_problem
-            if not os.path.isdir(f"./submission_by_problem/{prob_name}"): os.mkdir(f"./submission_by_problem/{prob_name}")
             submission_by_problem_file_name = f"./submission_by_problem/{prob_name}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
             shutil.copy(correct_file_name, submission_by_problem_file_name)
 
 
-        self.log_write("\n")
+        ret_log += "\n"
+
+        return ret_log
 
 
     def __write_functions(self, iterator, output_file, grading_header, prob_name, submission_file, grading_case, is_class=False):
@@ -176,36 +172,48 @@ class AutoGradeStudent:
 
         # class case: write class declaration and class member function
         if is_class:
-            for k in range(self.class_num[iterator]):
-                # write class declaration
-                class_name = self.hw_pattern[f"{prob_name}-class"][str(k)].split()[1]
-                class_declare = find_function(submission_file, "class", class_name)
-                combine_f.write(class_declare)
+            # erase the main function and paste it
+            with open(submission_file, 'r') as f: content = f.read()
 
-                # SPECIAL LOGIC FOR HW2
-                if class_name == "Product": 
-                    combine_f.write(find_line(submission_file, "int Product::nextId"))
-                    combine_f.write(find_line(submission_file, "int Product :: nextId"))
-                    combine_f.write(find_line(submission_file, "int Product::nextID"))
+            main_function_pattern = r'int\s+main\s*\([^)]*\)\s*{([^{}]*|{[^{}]*})*}'
+            include_pattern = r'#include\s+<[^>]+>'
+            namespace_pattern = r'using\s+namespace\s+std\s*;'
+
+            content_without_main = re.sub(main_function_pattern, '', content, flags=re.DOTALL)
+            content_without_includes = re.sub(include_pattern, '', content_without_main)
+            content_without_namespace = re.sub(namespace_pattern, '', content_without_includes)
+
+            combine_f.write(content_without_namespace)
+
+            # for k in range(self.class_num[iterator]):
+            #     # write class declaration
+            #     class_name = self.hw_pattern[f"{prob_name}-class"][str(k)].split()[1]
+
+            #     class_declare = find_function(submission_file, "class", class_name)
+            #     combine_f.write(class_declare)
+
+            #     # SPECIAL LOGIC FOR HW2
+            #     if class_name == "Product": 
+            #         combine_f.write(find_line(submission_file, "int Product::nextId"))
+            #         combine_f.write(find_line(submission_file, "int Product :: nextId"))
+            #         combine_f.write(find_line(submission_file, "int Product::nextID"))
+            #         combine_f.write(find_line(submission_file, "int Product::nextid"))
 
 
-                self.log_write(f"\n\nclass block\nclass_name: {class_name}:\n{class_declare}\n")
+            #     combine_f.write("\n\n")
 
-                combine_f.write("\n\n")
+            # for l in range(self.class_num[iterator]):
+            #     class_member_order = self.hw_pattern[f"{prob_name}-class"][str(l)].split()[1]
 
-                # write class member functions if it exist
-                class_member_func_list = find_member_functions(submission_file, class_name, log_write=self.log_write)
+            #     # write class member functions if it exist
+            #     class_member_func_list = find_member_functions(submission_file, class_member_order)
 
-                self.log_write(f"\n\nclass_member_func_list:\n{class_member_func_list}\n")
+            #     if len(class_member_func_list) != 0:
+            #         for member_block in class_member_func_list:
+            #             if len(member_block) != 0:
+            #                 combine_f.write(member_block)
+            #                 combine_f.write("\n\n")
 
-                if len(class_member_func_list) != 0:
-                    for member_block in class_member_func_list:
-                        if len(member_block) != 0:
-                            combine_f.write(member_block)
-
-                            self.log_write(f"\n\n{k} member block:\n{member_block}\n")
-
-                            combine_f.write("\n\n")
 
         # find functions in submitted code and combine it in output file.
         else:
@@ -225,16 +233,21 @@ class AutoGradeStudent:
         combine_f.close()
 
 
-    def combine_submission(self):
+    def combine_submission(self, is_regrade=False):
         """
         Make source code to compile.
         Find functions in student's submission with self.hw_pattern to make compiling code.
         Add problem's header in ./grading_cases 
+
+        Returns:
+            str : return log string
         """        
-        self.log_write(f"\n>> {self.s_id} combine submission to make case main\n")
+        ret_log = ""
+        
+        ret_log += f"\n>> {self.s_id} combine submission to make case main\n"
         
         # make directory if it is not exist
-        if not os.path.isdir(f"./outputs/{self.s_id}"): os.mkdir(f"./outputs/{self.s_id}")
+        
 
         # make compiling source code per case
         for i, prob_name in enumerate(self.prob_names):
@@ -242,9 +255,12 @@ class AutoGradeStudent:
             else: is_class = False  
 
             submission_file=f"./student_submission/{self.s_id}/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
-            
-            if is_class: self.log_write(f"\t>> class submission\n")
-            else: self.log_write(f"\t>> default submission\n")
+
+            if is_regrade:
+                if os.path.isfile(submission_file): self.file_submitted[prob_name] = True
+
+            if is_class: ret_log += f"\t>> class submission\n"
+            else: ret_log += f"\t>> default submission\n"
 
             for j in range(self.case_num[i]):
                 output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}.cpp"
@@ -264,9 +280,9 @@ class AutoGradeStudent:
                     combine_code = combine_code.replace('\xEF\xBB\xBF', '')
                     with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
 
-                    self.log_write(f"\t>>>> {self.s_id}: combined {prob_name}-{j+1}\n")
+                    ret_log += f"\t>>>> {self.s_id}: combined {prob_name}-{j+1}\n"
                 else:
-                    self.log_write(f"\t>>>> {self.s_id}: not submitted {prob_name}\n")
+                    ret_log += f"\t>>>> {self.s_id}: not submitted {prob_name}\n"
 
 
             # SPECIAL LOGIC FOR HW2 - copy class member function file to submission_by_problem
@@ -282,33 +298,38 @@ class AutoGradeStudent:
                 combine_code = combine_code.replace('\xEF\xBB\xBF', '')
                 with open(output_file, 'w') as combine_f: combine_f.write(combine_code)
 
-                if not os.path.isdir(f"./submission_by_problem/{prob_name}-class"): os.mkdir(f"./submission_by_problem/{prob_name}-class")
                 submission_by_problem_file_name = f"./submission_by_problem/{prob_name}-class/{self.hw_name}_{prob_name}_{self.s_id}.cpp"
                 shutil.copy(tmp_output_file, submission_by_problem_file_name)
                 
 
-        self.log_write(f"\n")
+        ret_log += f"\n"
+
+        return ret_log
         
 
 
-    def compile_case_make_output(self, is_print=True):
+    def compile_case_make_output(self, is_print=False):
         """        
         Compile compiling code combined before.
         Execute output program and make diff file for grading.
     
         Args:
             is_print (bool, optional): options to print which student's submission is compiled. Defaults to True.
+
+        Returns:
+            str : return log string
         """        
-                  
-        self.log_write(f"\n>> {self.s_id} compile cases and make outputs, make diff file\n")
+        ret_log = ""
+
+        ret_log += f"\n>> {self.s_id} compile cases and make outputs, make diff file\n"
         
         for i, prob_name in enumerate(self.prob_names):
-            self.log_write(f"\t{self.s_id} : {prob_name}\n")
+            ret_log += f"\t{self.s_id} : {prob_name}\n"
             for j in range(self.case_num[i]):
 
                 if is_print: print(f"\r>>>> {prob_name}-case-{j+1}\t", end="")        
                 
-                self.log_write(f"\t\t{self.s_id} : case {j+1} (")
+                ret_log += f"\t\t{self.s_id} : case {j+1} "
 
                 grading_case_output_file = f"./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}_answer.txt"
                 output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}"
@@ -319,12 +340,11 @@ class AutoGradeStudent:
                     subprocess_result = subprocess.run(gcc_command, capture_output=True, text=True)
                     with open(f"{output_file}_compile_result.txt", 'w') as f: f.write(subprocess_result.stderr)
                     
-                    if len(subprocess_result.stderr) > 0: self.log_write(": compile error\n")
+                    if len(subprocess_result.stderr) > 0: ret_log += ": compile error\n"
                     else:
-                        self.compile_success[prob_name][j] = True 
-                        self.log_write(": compile success\n")
+                        ret_log += ": compile success\n"
                 else: 
-                    self.log_write(": file does not exist\n")
+                    ret_log += ": file does not exist\n"
                     continue
 
                 # run output and get result
@@ -339,7 +359,9 @@ class AutoGradeStudent:
 
         if is_print: print(f"\r>>>> Done               ")
 
-        self.log_write("\n")
+        ret_log += "\n"
+
+        return ret_log
 
 
 
@@ -349,15 +371,20 @@ class AutoGradeStudent:
         Grading policy: 
             If compile result file is not empty, then this case is compile-error.
             If diff file is empty, then this case is pass. Else, case is fail.
+
+        Returns:
+            str : return log string
         """        
-        self.log_write(f"\n>> {self.s_id} score using outputs\n")
+        ret_log = ""
+        
+        ret_log += f"\n>> {self.s_id} score using outputs\n"
 
         student_score_json_file = f"./outputs/{self.s_id}/{self.s_id}_result.json"
         student_score = {}
 
         # write score information in student_score.json
         for i, prob_name in enumerate(self.prob_names):
-            self.log_write(f"\t{self.s_id} : {prob_name}\n")
+            ret_log += f"\t{self.s_id} : {prob_name}\n"
             
             output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_1_{self.s_id}"
             if not os.path.isfile(f"{output_file}_compile_result.txt"):
@@ -365,7 +392,7 @@ class AutoGradeStudent:
             else:
                 student_score[f"{prob_name}"] = "file-submitted"
                 for j in range(self.case_num[i]):
-                    self.log_write(f"\t\t{self.s_id} : case {j+1}")
+                    ret_log += f"\t{self.s_id} : case {j+1}\n"
                     output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}"
 
                     if not is_file_empty(f"{output_file}_compile_result.txt"):
@@ -374,25 +401,34 @@ class AutoGradeStudent:
                         student_score[f"{prob_name}-case-{j+1}"] = "fail"
                     else:
                         student_score[f"{prob_name}-case-{j+1}"] = "pass"
-                self.log_write("\n")
+                ret_log += "\n"
         
         with open(student_score_json_file, "w") as json_file: json.dump(student_score, json_file, indent=4)
 
-        self.log_write("\n")
+        ret_log += "\n"
+
+        return ret_log
 
 
     def print_reports(self):
         """
         Generate markdown reports using ReportPrint
+
+        Returns:
+            str : return log string
         """        
-        self.log_write(f"\n>> {self.s_id} print reports for student\n")
+        ret_log = ""
+        
+        ret_log += f"\n>> {self.s_id} print reports for student\n"
         
         report_print = ReportPrint(self.s_id, self.hw_name, self.prob_names, self.case_num, 
                                    self.class_num, self.zip_submitted)
-        self.log_write(f">>>> print report into markdown\n")
+        ret_log += f">>>> print report into markdown\n"
         report_print.print_report()
 
-        self.log_write("\n")
+        ret_log += "\n"
+
+        return ret_log
 
 
     def run_output(self, prob_name, case_num):

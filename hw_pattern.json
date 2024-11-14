@@ -33,7 +33,22 @@
     },
     "1-class": {
         "0": "class Product",
-        "1": "class State",
-        "2": "class VendingMachine"
+        "1": "class Beverage",
+        "2": "class Snack",
+        "3": "class State",
+        "4": "class NoCoinState",
+        "5": "class HasCoinState",
+        "6": "class SoldOutState",
+        "7": "class VendingMachine"
+    },
+    "1-member":{
+        "0": "class Product",
+        "1": "class Beverage",
+        "2": "class Snack",
+        "3": "class State",
+        "4": "class VendingMachine",
+        "5": "class NoCoinState",
+        "6": "class HasCoinState",
+        "7": "class SoldOutState"
     }
 }

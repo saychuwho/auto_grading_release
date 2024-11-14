@@ -4,6 +4,7 @@ import os
 import shutil
 import glob
 from datetime import datetime
+import multiprocessing
 
 from functions import progress_bar
 from auto_grade_student import AutoGradeStudent
@@ -43,8 +44,9 @@ class AutoGrader():
         self.log_file = f"./log/run_log_{formatted_time}.txt"
 
         for s_id in self.student_list:
-            self.auto_grade_student_dict[s_id] = AutoGradeStudent(s_id, self.log_file, 
-                                                                  self.hw_info_dict, self.hw_pattern_dict,
+            self.auto_grade_student_dict[s_id] = AutoGradeStudent(s_id,
+                                                                  self.hw_info_dict, 
+                                                                  self.hw_pattern_dict,
                                                                   zip_submitted=True if self.student_list_dict[str(s_id)] == "zip-submitted" else False) 
 
 
@@ -86,7 +88,10 @@ class AutoGrader():
             progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
 
             student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-            zip_submitted = student_grader.unzip_submission()
+            
+            zip_submitted, ret_log = student_grader.unzip_submission()
+            self.log_write(ret_log)
+
             self.student_list_dict[str(s_id)] = "zip-submitted" if zip_submitted else "zip-not-submitted"
 
             
@@ -98,59 +103,123 @@ class AutoGrader():
         print("\n2. Change submitted files into correct format & Copy files into submission_by_problem")
         self.log_write("\n2. Change submitted files into correct format & Copy files into submission_by_problem")
 
-        for i, s_id in enumerate(self.auto_grade_student_dict.keys()):
-            progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
-            
-            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-            if student_grader.zip_submitted: student_grader.change_file_names()
-
-
-    def combine_submission_all(self):
-        print("\n3. combine submission and cases")
-        self.log_write("\n3. combine submission and cases")
+        # make dir if necessary
+        for prob_name in self.prob_names:
+            if not os.path.isdir(f"./submission_by_problem/{prob_name}"): 
+                os.mkdir(f"./submission_by_problem/{prob_name}")
+            if not os.path.isdir(f"./submission_by_problem/{prob_name}-class"): 
+                os.mkdir(f"./submission_by_problem/{prob_name}-class")
 
         for i, s_id in enumerate(self.auto_grade_student_dict.keys()):
             progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
-            
-            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-            if student_grader.zip_submitted: student_grader.combine_submission()
-
-            
-    def compile_output_all(self):
-        print("\n4. Compile cases and make outputs, make diff file")
-        self.log_write("\n4. Compile cases and make outputs, make diff file")
-
-        for i, s_id in enumerate(self.auto_grade_student_dict.keys()):
-            # progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
             
             student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
             if student_grader.zip_submitted: 
-                print(f"\n>> student id : {s_id} / Progress ({i+1}/{self.progress_total})")    
-                student_grader.compile_case_make_output()
+                ret_log = student_grader.change_file_names()
+                self.log_write(ret_log)
+
+
+
+    def __combine_student(self, student_grader):
+        ret_log = student_grader.combine_submission()
+        self.log_write(ret_log)
+
+
+    def combine_submission_all(self):
+        print("\n3. combine submission and cases...")
+        self.log_write("\n3. combine submission and cases")
+
+        processes = []
+
+        for s_id in self.auto_grade_student_dict.keys():
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+
+            if student_grader.zip_submitted: 
+                if not os.path.isdir(f"./outputs/{s_id}"): os.mkdir(f"./outputs/{s_id}")
+
+                process = multiprocessing.Process(target=self.__combine_student,
+                                                  args=(student_grader,))
+                processes.append(process)
+                process.start()
+
+        for process in processes:
+            process.join()
+                
+
+
+    def __compile_student(self, s_id, student_grader: AutoGradeStudent, counter):
+        ret_log = student_grader.compile_case_make_output()
+        self.log_write(ret_log)
+
+        with counter.get_lock():
+            counter.value += 1
+            print(f">> student id : {s_id} / Progress ({counter.value+1}/{self.progress_total})")
+
+        
+    def compile_output_all(self):
+        print("\n4. Compile cases and make outputs, make diff file...")
+        self.log_write("\n4. Compile cases and make outputs, make diff file")
+
+        counter = multiprocessing.Value('i', 0)
+        processes = []
+
+        for s_id in self.auto_grade_student_dict.keys():            
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+            if student_grader.zip_submitted: 
+                process = multiprocessing.Process(target=self.__compile_student,
+                                                  args=(s_id, student_grader, counter,))
+                processes.append(process)
+                process.start()    
+
+
+        for process in processes:
+            process.join()
+
+
+
+    def __score_student(self, student_grader):
+        ret_log = student_grader.score_using_output()
+        self.log_write(ret_log)
 
 
     def score_all(self):
-        print("\n5. score using outputs")
+        print("\n5. score using outputs...")
         self.log_write("\n5. score using outputs")
 
-        for i, s_id in enumerate(self.auto_grade_student_dict.keys()):
-            progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
-            
-            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-            if student_grader.zip_submitted: student_grader.score_using_output()
+        processes = []
 
+        for s_id in self.auto_grade_student_dict.keys():
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+            if student_grader.zip_submitted: 
+                process = multiprocessing.Process(target=self.__score_student, 
+                                                  args=(student_grader,))
+                processes.append(process)
+                process.start()
+
+        for process in processes:
+            process.join()       
+
+
+
+    def __print_student(self, student_grader):
+        ret_log = student_grader.print_reports()
+        self.log_write(ret_log)
 
 
     def print_report_all(self):
-        print("\n6. Print reports")
+        print("\n6. Print reports...")
         self.log_write("\n6. Print reports")
 
-        for i, s_id in enumerate(self.auto_grade_student_dict.keys()):
-            progress_bar(i+1, self.progress_total, prefix="Progress ", suffix=f"{s_id}", length=50)
-            
-            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-            student_grader.print_reports()
+        processes = []
 
+        for s_id in self.auto_grade_student_dict.keys():
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+            process = multiprocessing.Process(target=self.__print_student,
+                                              args=(student_grader,))
+            process.start()
+
+        for process in processes:
+            process.join()
     
     
     def result_score(self):
@@ -328,20 +397,68 @@ class AutoGrader():
         with open("./student_list.json", "w") as f: json.dump(self.student_list_dict, f, indent=4)
 
 
-    def regrade_student(self, s_id: int, is_zip=False):
-        student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
-        if is_zip:
-            zip_submitted = student_grader.unzip_submission()
-            self.student_list_dict[str(s_id)] = "zip-submitted" if zip_submitted else "zip-not-submitted"
-            
-            if self.student_list_dict[str(s_id)] == "zip-submitted":
-                student_grader.change_file_names()
+    def __regrade_student_zip_process(self, s_id, student_grader: AutoGradeStudent):
+        zip_submitted, ret_log = student_grader.unzip_submission()
+        self.log_write(ret_log)
+        self.student_list_dict[str(s_id)] = "zip-submitted" if zip_submitted else "zip-not-submitted"
         
         if self.student_list_dict[str(s_id)] == "zip-submitted":
-            student_grader.combine_submission()
-            student_grader.compile_case_make_output(False)
-            student_grader.score_using_output()
-            student_grader.print_reports()
+            self.log_write(student_grader.change_file_names())
+
+    
+    def __regrade_student(self, student_grader: AutoGradeStudent):
+        ret_str = ""
+        ret_str += student_grader.combine_submission(True)
+        ret_str += student_grader.compile_case_make_output(False)
+        ret_str += student_grader.score_using_output()
+        ret_str += student_grader.print_reports()
+        ret_str += "\n"
+        self.log_write(ret_str)
+
+
+    def regrade_students(self):
+        # regrade zip-not-submitted
+        with open('./result_zip_not_submitted_list.csv', 'r') as f: regrade_zip = f.readlines()    
+        # regrade else
+        with open('./student_list_regrade.txt', 'r') as f: regrade_list = list(map(int, f.readlines()))
+        
+
+        print(">> Regrade student...")
+        self.log_write(">> Regrade student\n")
+        
+        processes = []
+
+        for s_id_str in regrade_zip:
+            if s_id_str[0] == 's': continue
+            s_id = int(s_id_str.strip().strip(','))
+            
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+            self.__regrade_student_zip_process(s_id, student_grader)
+            
+            if self.student_list_dict[str(s_id)] == "zip-submitted":
+                process = multiprocessing.Process(target=self.__regrade_student,
+                                                  args=(student_grader,))
+                processes.append(process)
+                process.start()
+
+        
+        for s_id in regrade_list:
+            student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
+            if self.student_list_dict[str(s_id)] == "zip-submitted":
+                process = multiprocessing.Process(target=self.__regrade_student,
+                                                  args=(student_grader,))
+                processes.append(process)
+                process.start()
+            
+
+        for process in processes:
+            process.join()
+        
+
+        self.dump_student_list()
+        self.result_score()
+
+        print()
 
 
     def reset(self):

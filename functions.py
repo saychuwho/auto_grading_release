@@ -77,7 +77,7 @@ def find_function(data: str, func_return_type: str, func_name: str, is_path=True
     return function_block
 
 
-def find_member_functions(data:str, class_name: str, log_write, is_path=True):
+def find_member_functions(data:str, class_name: str, is_path=True):
     func_list = []
 
 
@@ -95,7 +95,6 @@ def find_member_functions(data:str, class_name: str, log_write, is_path=True):
 
     for match in matches:
         func_pattern = match.group()
-        log_write(f"\n\nfunc_pattern {class_name}:\n{func_pattern}")
         func_list.append(__find_function_block(cpp_file_content, func_pattern))                    
         
     return func_list

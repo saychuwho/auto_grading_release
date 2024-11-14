@@ -2,7 +2,7 @@
 
 ## 이용방법
 
-리눅스 `bash` 쉘에서 동작합니다. 리눅스 환경을 우선 준비해둬야 합니다. 
+리눅스 `bash` 쉘에서 동작합니다. 리눅스 환경(Ubuntu나 WSL)을 우선 준비해둬야 합니다. 
 
 ### 1. 필수 요건 설치
 
@@ -14,25 +14,11 @@ sudo apt install git zip unzip dos2unix perl
 
 ### 2. 프로그램 설치
 
-각 assignment 버전에 맞는 최신 release zip 파일을 다운받아 압축해제 합니다. 
+배포받은 zip 파일을 다운받아 압축해제 합니다.
 
-예를 들어, assignment 1 채점 프로그램을 얻는다고 하면, assignment 1이 붙은 release 중 가장 최신 버전을 다운받으면 됩니다.
+압축해제 한 후, shell에서 압축해제 한 디렉토리로 이동합니다. 
 
-<img src="./img/howtouse_1_1.png" width="75%">
-
-<img src="./img/howtouse_1_2.png" width="75%">
-
-또는, 이 repository를 clone 한 후, assignment 버전에 해당하는 branch로 checkout합니다.
-
-예를 들어, assignment 1 채점 프로그램을 얻는다고 하면, 이 repository를 clone한 후, assignment 1에 해당하는 branch인 `2024-CSE201-Assignment-1`로 checkout하면 됩니다. 
-
-```bash
-git clone https://github.com/saychuwho/auto_grading_release.git
-cd auto_grading_release/
-git checkout 2024-CSE201-Assignment-1
-```
-
-<img src="./img/howtouse_1_3.png" width="75%">
+예를 들어, Document에 배포받은 zip file을 압축해제 했다면, `cd "압축해제된폴더이름"`을 입력해 이동합니다.
 
 ### 3. 스크립트에 실행 권한 주기
 
