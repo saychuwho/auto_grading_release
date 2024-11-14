@@ -31,6 +31,11 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2024.11.14
+  - Major Update: 부분적으로 multiprocessing을 적용했습니다: `all` mode와 `regrade` mode에서 unzip, change file name 부분 이외의 부분
+  - `log_delete` mode 구현: log file들을 지웁니다.
+  - case 1이 test case이고, case 2가 기본 test case입니다.
+  - 컴파일 규칙을 만드는 데 난해함이 있어서, 이번에는 학생이 제출한 코드에서 헤더 파일과 main 함수를 제거한 뒤 통째로 컴파일하도록 로직을 수정했습니다.
 - 2024.10.25
   - Major Update: shell script에서 python script로 코드를 뜯어 고쳤습니다. 
   - Assignment 2 Release 버전을 출시했습니다. 
