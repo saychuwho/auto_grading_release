@@ -173,7 +173,7 @@ class AutoGradeStudent:
         # class case: write class declaration and class member function
         if is_class:
             # erase the main function and paste it
-            with open(submission_file, 'r') as f: content = f.read()
+            with open(submission_file, 'r', errors="replace") as f: content = f.read()
 
             main_function_pattern = r'int\s+main\s*\([^)]*\)\s*{([^{}]*|{[^{}]*})*}'
             include_pattern = r'#include\s+<[^>]+>'
