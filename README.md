@@ -24,6 +24,7 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 - 2024-CSE201-Assignment-1 : 2024 DGIST OOP Assignment 1
 - 2024-CSE202-Assignment-2 : 2024 DGIST OOP Assignment 2
+- 2024-CSE202-Assignment-3 : 2024 DGIST OOP Assignment 3
 
 ## How to use
 
@@ -31,6 +32,8 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2024.11.16
+  - utf-8 encoding 관련 버그를 고쳤습니다.
 - 2024.11.14
   - Major Update: 부분적으로 multiprocessing을 적용했습니다: `all` mode와 `regrade` mode에서 unzip, change file name 부분 이외의 부분
   - `log_delete` mode 구현: log file들을 지웁니다.
