@@ -1,7 +1,8 @@
-//2024-fall Assignment 3 (Vending Machine)
-
+//2024-fall Assignment 4 (Vending Machine)
 #include <iostream>
 #include <string>
+#include <vector> 
+#include <algorithm>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ class VendingMachine; // Forward declaration
  * @brief Base class for all products in the vending machine.
  */
 class Product {
-protected:  //MODIFIED
+protected:  
     static int nextId; ///< Static counter for generating unique product IDs
     int id; ///< Unique identifier for the product
     string p_name; ///< Name of the product
@@ -30,7 +31,7 @@ public:
      * @brief Get the name of the product
      * @return string The product's name
      */
-    virtual string getName() const { return p_name; } // Changed to return by value
+    virtual string getName() const { return p_name; } 
     /**
      * @brief Get the price of the product
      * @return double The product's price
@@ -40,11 +41,11 @@ public:
      * @brief Get the ID of the product
      * @return int The product's ID
      */
-    virtual int getId() const { return id; }
+    virtual int getId() const { return id; }  
     /**
      * @brief Describe the product (print its details)
      */
-    virtual void describe() const {
+    virtual void describe() const { 
         cout << "Product: " << p_name << " (ID: " << id << ", Price: $" << p_price << ")\n";
     }
 };
@@ -65,9 +66,6 @@ Product::~Product() {
  * @brief Represents a beverage product, derived from Product
  */
 class Beverage : public Product {
-//private:
-//    double volume; ///< Volume of the beverage in ml
-
 public:
     /**
     * @brief Construct a new Beverage object
@@ -93,9 +91,6 @@ Beverage::Beverage(string name, double price, double calorie) : Product(name, pr
  * @brief Represents a snack product, derived from Product
  */
 class Snack : public Product {
-//private:
-//    int calories; ///< Calorie content of the snack
-
 public:
     /**
      * @brief Construct a new Snack object
@@ -126,13 +121,13 @@ public:
      * @brief Construct a new State object
      * @param machine Pointer to the associated VendingMachine
      */
-    State(VendingMachine* machine); 
+    State(VendingMachine* machine);  
 
     /**
      * @brief Get the name of the state
      * @return string The state's name
      */
-    virtual string getName() const = 0;
+    virtual string getName() const = 0; 
     /**
      * @brief Destroy the State object
      */
@@ -167,8 +162,9 @@ private:
 
     State* currentState;    ///< Pointer to the current state. This pointer will be updated upon transitions.    
     const int MAX_NUM_PRODUCT = 10; ///Maximum number of products
-    Product* inventory[10];  ///< Vector of products in the machine
-    int num_of_products; ///Store the number of products in the vending machine
+    //Product* inventory[10];  ///< Vector of products in the machine
+    vector<Product*> inventory;  ///< Vector of products in the machine
+    //int num_of_products; ///Store the number of products in the vending machine
     bool hasCoin;   ///< Flag indicating if a coin is inserted
     double coinValue;   ///< Value of inserted coins
 
@@ -195,9 +191,9 @@ public:
      */
     void setState(State* state);
     /**
-     * @brief Handle coin insertion
+     * @brief Handle coin insertion 
      */
-    void insertCoin(double coin);
+    //void insertCoin(double coin);
 
     /**
      * @brief Eject inserted coins
@@ -241,7 +237,10 @@ public:
     * @brief Get the number of products in inventory
     * @return int Number of products
     */
-    int getInventoryCount() const { return num_of_products; }
+    int getInventoryCount() const { 
+        return this->inventory.size();
+        //return num_of_products; 
+    }
 
     /**
      * @brief Get the NoCoinState
@@ -279,8 +278,29 @@ public:
      */
     void resetCoinValue() { coinValue = 0.0; }
 
-    //MODIFIED
     void addCoinValue(double coin) { coinValue += coin; }
+    // Operator overloading for adding coins
+    /**
+     * @brief Overloaded addition operator to add coins
+     * @param coin Value of the coin to add
+     * @return VendingMachine& Reference to this VendingMachine
+     */
+    VendingMachine& operator+(double coin) {
+        currentState->insertCoin(coin);
+        printState("Insert Coin");
+        return *this;
+    }
+
+    // Operator overloading for adding products
+    /**
+     * @brief Overloaded addition operator to add products
+     * @param product Pointer to the Product to add
+     * @return VendingMachine& Reference to this VendingMachine
+     */
+    VendingMachine& operator+(Product* product) {
+        this->addProduct(product);
+        return *this;
+    }
 };
 
 State::State(VendingMachine* t_machine) : machine(t_machine) {
@@ -288,19 +308,13 @@ State::State(VendingMachine* t_machine) : machine(t_machine) {
     //cout << "[Constructor] Constructing State: " << s_name << "\n";
 }
 
-//DELETED
-//State::State(string name) {
-//    s_name = name;
-//    cout << "[Constructor] Constructing State: " << s_name << "\n";
-//}
-
 State::~State() {
     cout << "[Destructor] Destructing State: " << s_name << "\n";
 }
 
 // State classes
 /**
- * @class NoCoinState (MODIFIED)
+ * @class NoCoinState 
  * @brief Represents the state when no coin is inserted
  */
 class NoCoinState : public State {
@@ -335,12 +349,11 @@ void NoCoinState::insertCoin(double coin) {
     machine->setState(machine->getHasCoinState());
 }
 
-
 void NoCoinState::ejectCoin() { 
     cout << "No coin to eject\n";
 }
 
-void NoCoinState::dispense(string productName) { // Changed to pass by value
+void NoCoinState::dispense(string productName) {
     cout << "Insert a coin first\n";
 }
 
@@ -361,7 +374,7 @@ public:
     ~HasCoinState() override;
     void insertCoin(double coin) override;
     void ejectCoin() override;
-    void dispense(string productName) override; // Changed to pass by value
+    void dispense(string productName) override;
     string getName() const override { return this->s_name; }
 };
 
@@ -386,7 +399,7 @@ void HasCoinState::ejectCoin() {
     machine->setState(machine->getNoCoinState());
 }
 
-void HasCoinState::dispense(string productName) { // Changed to pass by value
+void HasCoinState::dispense(string productName) { 
     if (machine->isProductAvailable(productName)) {
         double productPrice = machine->getProductPrice(productName);
         if (machine->getCoinValue() >= productPrice) {
@@ -433,7 +446,7 @@ public:
     ~SoldOutState() override;
     void insertCoin(double coins) override;
     void ejectCoin() override;
-    void dispense(string productName) override; // Changed to pass by value
+    void dispense(string productName) override; 
     string getName() const override { return this->s_name; }
 };
 SoldOutState::SoldOutState(VendingMachine* t_machine) : State(t_machine) {
@@ -454,7 +467,7 @@ void SoldOutState::ejectCoin() {
     cout << "No coin to eject\n";
 }
 
-void SoldOutState::dispense(string productName) { // Changed to pass by value
+void SoldOutState::dispense(string productName) { 
     cout << "No product to dispense\n";
 }
 
@@ -462,10 +475,10 @@ void SoldOutState::dispense(string productName) { // Changed to pass by value
 // State classes
 
 // VendingMachine method implementations
-VendingMachine::VendingMachine() : hasCoin(false), coinValue(0.0), num_of_products(0) {
+VendingMachine::VendingMachine() : hasCoin(false), coinValue(0.0) {
     cout << "[Constructor] Constructing VendingMachine\n";
 
-    noCoinState = new NoCoinState(this);  
+    noCoinState = new NoCoinState(this); 
     hasCoinState = new HasCoinState(this); 
     soldOutState = new SoldOutState(this); 
     currentState = noCoinState;
@@ -477,7 +490,7 @@ VendingMachine::~VendingMachine() {
     delete noCoinState;
     delete hasCoinState;
     delete soldOutState;
-    for (int i = 0; i < this->num_of_products; i++) {
+    for (int i = 0; i < this->getInventoryCount(); i++) {
         delete this->inventory[i];
     }
 }
@@ -488,33 +501,29 @@ void VendingMachine::setState(State* state) {
 }
 
 
-void VendingMachine::insertCoin(double coin) {
-    currentState->insertCoin(coin);
-    printState("Insert Coin");
-}
-
-void VendingMachine::ejectCoin() {
+void VendingMachine::ejectCoin() {    
     currentState->ejectCoin();
     printState("Eject Coin");
 }
 
-void VendingMachine::dispense(string productName) {
+void VendingMachine::dispense(string productName) {    
     currentState->dispense(productName);
     printState("Dispense");
 }
 
 Product* VendingMachine::removeProduct(string productName) {
-    for (int i = 0; i < this->num_of_products; i++) {
-        if (this->inventory[i]->getName() == productName) {
-            Product* temp_product = this->inventory[i]; //Store the product pointer temporalily
-            //traverse the rest of the products, and shift all to the left
-            for (int j = i + 1; j < this->num_of_products; j++) {
-                this->inventory[j - 1] = this->inventory[j];
-            }
-            this->num_of_products--; //Reduce the number of product by 1
-            //cout << "[removeProduct] A product is removed: " << temp_product->getName() << endl;
-            return temp_product;
-        }
+
+    auto it = find_if(inventory.begin(), inventory.end(),
+        [&productName](const Product* p) { return p->getName() == productName; });
+    if (it != inventory.end()) {
+        Product* product = *it;
+        inventory.erase(it);
+        //cout << "Dispensed: ";
+        product->describe();
+        // modified if (inventory.empty()) {
+        // modified    setState(soldOutState);
+        // modified}
+        return product;
     }
     //If nothing is found
     cout << "[removeProduct] No product to remove" << endl;
@@ -522,29 +531,25 @@ Product* VendingMachine::removeProduct(string productName) {
 
 }
 
-//Add product
+//Add product 
 void VendingMachine::addProduct(Product* product) {
 
-    if (this->num_of_products == this->MAX_NUM_PRODUCT) {
+    if (this ->getInventoryCount() == this->MAX_NUM_PRODUCT) {
         cout << "[addProduct] Inventory is full" << endl;
         return;
     }
 
-    //Perform actions for all states (No Coin, Has Coin, Sold Out)
-    this->inventory[this->num_of_products] = product;   //Add the new product at the end of the inventory
-    this->num_of_products++;        //Increase the number of products
-    //cout << "[addProduct] Added a new product: " << this->inventory[num_of_products - 1]->getName() << endl;
-
-    //State change (Only for Sold Out state)
-    if (currentState->getName() == "Sold Out") {
-        this->setState(this->noCoinState);
+    cout << "Added to inventory: ";
+    product->describe();
+    inventory.push_back(product);
+    if (currentState == soldOutState && !inventory.empty()) {
+        setState(noCoinState);
     }
-    return;
 }
 
 
 bool VendingMachine::isProductAvailable(string productName) const {
-    for (int i = 0; i < this->num_of_products; i++) {
+    for (int i = 0; i < this->getInventoryCount(); i++) {
         if (this->inventory[i]->getName() == productName) {
             return true; //Found the product
         }
@@ -553,7 +558,7 @@ bool VendingMachine::isProductAvailable(string productName) const {
 }
 
 double VendingMachine::getProductPrice(string productName) const {
-    for (int i = 0; i < this->num_of_products; i++) {
+    for (int i = 0; i < this->getInventoryCount(); i++) {
         if (this->inventory[i]->getName() == productName) {
             return this->inventory[i]->getPrice(); //Found the product
         }
@@ -564,43 +569,50 @@ double VendingMachine::getProductPrice(string productName) const {
 
 void VendingMachine::displayInventory() const {
     cout << "Current Inventory:\n";
-    for (int i = 0; i < this->num_of_products; i++) {
+    for (int i = 0; i < this->getInventoryCount(); i++) {
         this->inventory[i]->describe();
     }
-    cout << "Total items: " << this->num_of_products << "\n";
+    cout << "Total items: " << this->getInventoryCount() << "\n";
 }
 
 
-int main() { 
-    cout << "=== Vending Machine Test Cases ===" << endl; 
-    VendingMachine machine; 
-    cout << "\n--- Test Case 1: Adding Products ---" << endl; 
-    Product* cola = new Beverage("Cola", 1.50, 140); 
-    Product* chips = new Snack("Chips", 1.00, 180); 
-    Product* water = new Beverage("Water", 1.00, 0); 
-    machine.addProduct(cola); 
-    machine.addProduct(chips); 
-    machine.addProduct(water); 
-    machine.displayInventory(); 
-    cout << "\n--- Test Case 2: Inserting Coins and Dispensing ---" << endl; 
-    machine.insertCoin(1.00); 
-    machine.insertCoin(0.50); 
-    machine.dispense("Cola"); 
-    machine.displayInventory(); 
-    cout << "\n--- Test Case 3: Exact Change ---" << endl; 
-    machine.insertCoin(1.00); 
-    machine.dispense("Water"); 
+int main() {
+    cout << "==========Part 1==========" << endl;
+    VendingMachine machine;
+
+    // Add some products using operator overloading
+    machine + new Beverage("Cola", 1.50, 330);
+    machine + new Snack("Chips", 1.00, 150);
+    machine + new Beverage("Water", 1.00, 500);
+
     machine.displayInventory();
-    cout << "\n--- Test Case 4: Insufficient Funds ---" << endl; 
-    machine.insertCoin(0.50); 
-    machine.dispense("Chips"); 
-    machine.insertCoin(0.50); 
-    machine.dispense("Chips"); 
-    machine.displayInventory(); 
- 
-    cout << "\n--- Test Case 5: Non-existent Product ---" << endl; 
-    machine.insertCoin(1.00); 
-    machine.dispense("Candy"); 
- 
-    return 0; 
-} 
+
+    cout << "==========Part 2==========" << endl;
+    // Demonstrate item-specific dispensing with operator overloading for coins
+    machine + 1.00 + 0.50;  // Insert $1.50
+    machine.dispense("Cola");  // Should dispense Cola
+
+    machine + 1.00;  // Insert $1.00
+    machine.dispense("Water");  // Should dispense Water
+
+    cout << "==========Part 3==========" << endl;
+    machine + 0.50;  // Insert $0.50
+    machine.dispense("Chips");  // Should say insufficient funds
+    machine + 0.50;  // Insert additional $0.50
+    machine.dispense("Chips");  // Should dispense Chips
+
+    cout << "==========Part 4==========" << endl;
+    machine + 1.00;  // Insert $1.00
+    machine.dispense("Candy");  // Should say product not available
+
+    machine.displayInventory();
+
+    cout << "==========Part 5==========" << endl;
+    // Add more products
+    machine + new Snack("Chocolate", 1.25, 200);
+    machine + new Beverage("Orange Juice", 1.75, 250);
+
+    machine.displayInventory();
+
+    return 0;
+}
