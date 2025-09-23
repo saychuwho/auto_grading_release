@@ -6,72 +6,65 @@
 Action: Initialization | Current State: No Coin | Coin Value: 0
 [Constructor] Product created: Cola (ID: 1, Price: $1.5)
 Beverage created: Cola (330 calories)
+Added to inventory: Beverage: Cola (ID: 1, Price: $1.5, Calories: 330 calories)
 [Constructor] Product created: Chips (ID: 2, Price: $1)
 Snack created: Chips (150 calories)
+Added to inventory: Snack: Chips (ID: 2, Price: $1, Calories: 150 calories)
 [Constructor] Product created: Water (ID: 3, Price: $1)
-Beverage created: Water (0 calories)
-==========Part 2==========
+Beverage created: Water (500 calories)
+Added to inventory: Beverage: Water (ID: 3, Price: $1, Calories: 500 calories)
 Current Inventory:
 Beverage: Cola (ID: 1, Price: $1.5, Calories: 330 calories)
 Snack: Chips (ID: 2, Price: $1, Calories: 150 calories)
-Beverage: Water (ID: 3, Price: $1, Calories: 0 calories)
+Beverage: Water (ID: 3, Price: $1, Calories: 500 calories)
 Total items: 3
-==========Part 3==========
+==========Part 2==========
 Action: State Changed | Current State: Has Coin | Coin Value: 1
 Action: Insert Coin | Current State: Has Coin | Coin Value: 1
 Action: Insert Coin | Current State: Has Coin | Coin Value: 1.5
+Beverage: Cola (ID: 1, Price: $1.5, Calories: 330 calories)
 Action: State Changed | Current State: No Coin | Coin Value: 0
 [Destructor] Product destroyed: Cola (ID: 1)
 Action: Dispense | Current State: No Coin | Coin Value: 0
-==========Part 4==========
 Action: State Changed | Current State: Has Coin | Coin Value: 1
 Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Beverage: Water (ID: 3, Price: $1, Calories: 500 calories)
 Action: State Changed | Current State: No Coin | Coin Value: 0
 [Destructor] Product destroyed: Water (ID: 3)
 Action: Dispense | Current State: No Coin | Coin Value: 0
-==========Part 5==========
+==========Part 3==========
 Action: State Changed | Current State: Has Coin | Coin Value: 0.5
 Action: Insert Coin | Current State: Has Coin | Coin Value: 0.5
 Insufficient funds. Please insert more coins.
 Current balance: $0.5, Required: $1
 Action: Dispense | Current State: Has Coin | Coin Value: 0.5
 Action: Insert Coin | Current State: Has Coin | Coin Value: 1
+Snack: Chips (ID: 2, Price: $1, Calories: 150 calories)
 Action: State Changed | Current State: Sold Out | Coin Value: 0
 [Destructor] Product destroyed: Chips (ID: 2)
 Action: Dispense | Current State: Sold Out | Coin Value: 0
-==========Part 6==========
+==========Part 4==========
 SOLD OUT: No additional coin accepted
 Action: Insert Coin | Current State: Sold Out | Coin Value: 0
 No product to dispense
 Action: Dispense | Current State: Sold Out | Coin Value: 0
 Current Inventory:
 Total items: 0
-==========Part 7==========
+==========Part 5==========
 [Constructor] Product created: Chocolate (ID: 4, Price: $1.25)
 Snack created: Chocolate (200 calories)
+Added to inventory: Snack: Chocolate (ID: 4, Price: $1.25, Calories: 200 calories)
+Action: State Changed | Current State: No Coin | Coin Value: 0
 [Constructor] Product created: Orange Juice (ID: 5, Price: $1.75)
 Beverage created: Orange Juice (250 calories)
-Action: State Changed | Current State: No Coin | Coin Value: 0
+Added to inventory: Beverage: Orange Juice (ID: 5, Price: $1.75, Calories: 250 calories)
 Current Inventory:
 Snack: Chocolate (ID: 4, Price: $1.25, Calories: 200 calories)
 Beverage: Orange Juice (ID: 5, Price: $1.75, Calories: 250 calories)
 Total items: 2
-==========Part 8==========
-Action: State Changed | Current State: Has Coin | Coin Value: 2
-Action: Insert Coin | Current State: Has Coin | Coin Value: 2
-Change returned: $0.75
-Action: State Changed | Current State: No Coin | Coin Value: 0
-[Destructor] Product destroyed: Chocolate (ID: 4)
-Action: Dispense | Current State: No Coin | Coin Value: 0
-Action: State Changed | Current State: Has Coin | Coin Value: 2
-Action: Insert Coin | Current State: Has Coin | Coin Value: 2
-Change returned: $0.25
-Action: State Changed | Current State: Sold Out | Coin Value: 0
-[Destructor] Product destroyed: Orange Juice (ID: 5)
-Action: Dispense | Current State: Sold Out | Coin Value: 0
-Current Inventory:
-Total items: 0
 [Destructor] Destructing VendingMachine
 [Destructor] Destructing State: No Coin
 [Destructor] Destructing State: Has Coin
 [Destructor] Destructing State: Sold Out
+[Destructor] Product destroyed: Chocolate (ID: 4)
+[Destructor] Product destroyed: Orange Juice (ID: 5)

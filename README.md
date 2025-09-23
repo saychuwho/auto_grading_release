@@ -4,7 +4,7 @@ DGIST CSE-201 Object Oriented Programming 수업 Assignment 채점에 사용되�
 
 bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경에서 동작합니다.
 
-*main* 버전입니다.
+*Assignment 4* 버전입니다.
 
 자세한 코드 설명이 필요하다면 이 프로그램의 [샘플 버전 리포지토리](https://github.com/saychuwho/auto_grading)를 참조해주세요.
 
@@ -23,8 +23,9 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 현재까지 릴리즈한 버전은 다음과 같습니다. 
 
 - 2024-CSE201-Assignment-1 : 2024 DGIST OOP Assignment 1
-- 2024-CSE202-Assignment-2 : 2024 DGIST OOP Assignment 2
-- 2024-CSE202-Assignment-3 : 2024 DGIST OOP Assignment 3
+- 2024-CSE201-Assignment-2 : 2024 DGIST OOP Assignment 2
+- 2024-CSE201-Assignment-3 : 2024 DGIST OOP Assignment 3
+- 2024-CSE201-Assignment-4 : 2024 DGIST OOP Assignment 4
 
 ## How to use
 
@@ -32,6 +33,8 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2024.12.17
+  - Assignment 4 버전으로 업데이트 했습니다.
 - 2024.11.16
   - utf-8 encoding 관련 버그를 고쳤습니다.
 - 2024.11.14
