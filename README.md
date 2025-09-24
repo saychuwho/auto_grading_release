@@ -26,6 +26,7 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 - 2024-CSE201-Assignment-2 : 2024 DGIST OOP Assignment 2
 - 2024-CSE201-Assignment-3 : 2024 DGIST OOP Assignment 3
 - 2024-CSE201-Assignment-4 : 2024 DGIST OOP Assignment 4
+- 2025-CSE201-Assignment-1 : 2025 DGIST OOP Assignment 1
 
 ## How to use
 
@@ -33,6 +34,10 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2025.09.24
+  - Major change: HW info, student info 등을 별도로 빼고 main version만 남김
+  - `report_print.py`, `main.py` 버그 수정
+  - MOSS는 현재 서버 측 버그가 있는 거 같아서, 당분간 사용할 수 없을 것 같습니다.
 - 2024.12.17
   - Assignment 4 버전으로 업데이트 했습니다.
 - 2024.11.16
