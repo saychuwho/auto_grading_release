@@ -216,6 +216,7 @@ class AutoGrader():
             student_grader: AutoGradeStudent = self.auto_grade_student_dict[s_id]
             process = multiprocessing.Process(target=self.__print_student,
                                               args=(student_grader,))
+            processes.append(process)
             process.start()
 
         for process in processes:
@@ -515,20 +516,20 @@ class AutoGrader():
         
 
 
-def main():
-    grader = AutoGrader()
+# def main():
+#     grader = AutoGrader()
 
-    grader.print_grader_start()
+#     grader.print_grader_start()
 
-    grader.unzip_all()
-    grader.file_format_correction_all()
-    grader.combine_submission_all()
-    grader.compile_output_all()
-    grader.score_all()
-    grader.print_report_all()
-    grader.result_score()
-    grader.result_moss()
+#     grader.unzip_all()
+#     grader.file_format_correction_all()
+#     grader.combine_submission_all()
+#     grader.compile_output_all()
+#     grader.score_all()
+#     grader.print_report_all()
+#     grader.result_score()
+#     grader.result_moss()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
