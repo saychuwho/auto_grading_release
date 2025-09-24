@@ -20,6 +20,46 @@ sudo apt install git zip unzip dos2unix perl
 
 예를 들어, Document에 배포받은 zip file을 압축해제 했다면, `cd "압축해제된폴더이름"`을 입력해 이동합니다.
 
+이후, 별도로 배포된 info 파일 (ex. `assignment_1_info.zip`) 속 파일들을 압축해제합니다.
+
+압축해제 이후 디렉토리 구조는 다음과 같습니다.
+
+```
+.
+├── README.md
+├── _moss.pl
+├── auto_grade_student.py
+├── auto_grader.py
+├── functions.py
+├── grading_cases
+│   ├── hw1_1_case_1.cpp
+│   ├── hw1_1_case_1.out
+│   └── ...
+├── howtouse.md
+├── hw_info.json
+├── hw_info_score.json
+├── hw_pattern.json
+├── img
+│   └── ...
+├── log
+│   └── ...
+├── main.py
+├── outputs
+│   └── ...
+├── report_print.py
+├── reports
+│   └── ...
+├── setup.sh
+├── student_list.csv
+├── student_list.json
+├── student_list.txt
+├── student_submission
+│   └── ...
+├── submission_by_problem
+│   └── ...
+└── user_list.csv
+```
+
 ### 3. 스크립트에 실행 권한 주기
 
 다음 명령어를 실행합니다. 

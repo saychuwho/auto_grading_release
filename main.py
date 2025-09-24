@@ -13,12 +13,12 @@ def exit_with_message(message: str, grader: AutoGrader):
 
 def main():
 
-    print("DEBUG: Starting main.py")
+    # print("DEBUG: Starting main.py")
 
     lock_file = "./.runlock"
 
-    print(f"DEBUG: Lock file exists: {os.path.isfile(lock_file)}")
-    print(f"DEBUG: Lock file path: {os.path.abspath(lock_file)}")
+    # print(f"DEBUG: Lock file exists: {os.path.isfile(lock_file)}")
+    # print(f"DEBUG: Lock file path: {os.path.abspath(lock_file)}")
 
     # argument define
     parser = argparse.ArgumentParser()
@@ -28,12 +28,12 @@ def main():
 
     option = args.option[0]
 
-    print(f"DEBUG: Selected option: {option}")
-    print("DEBUG: About to import AutoGrader")
+    # print(f"DEBUG: Selected option: {option}")
+    # print("DEBUG: About to import AutoGrader")
 
     grader = AutoGrader()
 
-    print("DEBUG: AutoGrader created successfully")
+    # print("DEBUG: AutoGrader created successfully")
 
 
     grader.print_grader_start()
@@ -46,10 +46,10 @@ def main():
         had_run = os.path.isfile(lock_file)
         if had_run: exit_with_message("E: already run Grade All option", grader)
         
-        print(f"DEBUG: Creating lock file at: {os.path.abspath(lock_file)}")
+        # print(f"DEBUG: Creating lock file at: {os.path.abspath(lock_file)}")
         with open(lock_file, 'w') as f: 
             f.write('lock')
-        print(f"DEBUG: Lock file created. Exists: {os.path.isfile(lock_file)}")
+        # print(f"DEBUG: Lock file created. Exists: {os.path.isfile(lock_file)}")
         
         try:
             grader.unzip_all()
@@ -64,11 +64,11 @@ def main():
             print("<<< FINISHED >>>")
             grader.log_write("<<< FINISHED >>>\n")
             
-            # Remove lock file on successful completion
-            print(f"DEBUG: Removing lock file. Exists before removal: {os.path.exists(lock_file)}")
-            if os.path.exists(lock_file):
-                os.remove(lock_file)
-                print(f"DEBUG: Lock file removed. Exists after removal: {os.path.exists(lock_file)}")
+            # # Remove lock file on successful completion
+            # print(f"DEBUG: Removing lock file. Exists before removal: {os.path.exists(lock_file)}")
+            # if os.path.exists(lock_file):
+            #     os.remove(lock_file)
+            #     print(f"DEBUG: Lock file removed. Exists after removal: {os.path.exists(lock_file)}")
                 
         except Exception as e:
             grader.log_write(f"Error during execution: {str(e)}")
