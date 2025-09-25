@@ -34,6 +34,8 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2025.09.25
+  - `report.csv`와 `report_score.csv`에서 "file-not-submitted"를 올바르게 출력하지 못하는 버그를 수정했습니다.
 - 2025.09.24
   - Major change: HW info, student info 등을 별도로 빼고 main version만 남김
   - `report_print.py`, `main.py` 버그 수정

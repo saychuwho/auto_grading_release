@@ -328,7 +328,7 @@ class AutoGrader():
                             # write file_not_submitted_list
                             f_file_not_submitted_list.write(f"{s_id},{prob_name},\n")
                             is_regrade = True
-                            break             
+                            # break             
                         
                         else:
                             case_output = student_case_result[f"{prob_name}-case-{j+1}"]
