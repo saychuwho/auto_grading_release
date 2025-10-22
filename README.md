@@ -6,8 +6,6 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 *main* 버전입니다.
 
-자세한 코드 설명이 필요하다면 이 프로그램의 [샘플 버전 리포지토리](https://github.com/saychuwho/auto_grading)를 참조해주세요.
-
 버그가 있다면 이슈 트래커로 남겨주시거나, saychuwho@dgist.ac.kr로 메일을 보내주시거나, 톡방, 디스코드에 알려주세요.
 
 ## Tables
@@ -27,6 +25,7 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 - 2024-CSE201-Assignment-3 : 2024 DGIST OOP Assignment 3
 - 2024-CSE201-Assignment-4 : 2024 DGIST OOP Assignment 4
 - 2025-CSE201-Assignment-1 : 2025 DGIST OOP Assignment 1
+- 2025-CSE201-Assignments (공용 버전)
 
 ## How to use
 
@@ -34,6 +33,8 @@ bash를 이용하는 쉘 스크립트로 개발되었습니다. 리눅스 환경
 
 ## Bug Reported & Feature added
 
+- 2025.10.22
+  - `grading_cases`에서 정답을 읽어오지 못하는 버그를 수정
 - 2025.09.25
   - `report.csv`와 `report_score.csv`에서 "file-not-submitted"를 올바르게 출력하지 못하는 버그를 수정했습니다.
 - 2025.09.24
