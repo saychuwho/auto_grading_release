@@ -124,7 +124,7 @@ class ReportPrint:
     
     def __print_output_diff_result(self, prob_name, case_num):
         
-        with open(f"./grading_cases/{self.hw_name}_{prob_name}_case_{case_num}_output.txt", "r") as f: 
+        with open(f"./grading_cases/{self.hw_name}_{prob_name}_case_{case_num}_answer.txt", "r") as f: 
             output_answer = f.read()
         write_str = f"\n### problem-{prob_name}-case-{case_num} output answer\n```\n{output_answer}\n```\n"
         

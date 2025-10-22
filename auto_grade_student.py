@@ -332,6 +332,7 @@ class AutoGradeStudent:
                 ret_log += f"\t\t{self.s_id} : case {j+1} "
 
                 grading_case_output_file = f"./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}_answer.txt"
+                # grading_case_output_file = f"./grading_cases/{self.hw_name}_{prob_name}_case_{j+1}_output.txt"
                 output_file = f"./outputs/{self.s_id}/{self.hw_name}_{prob_name}_case_{j+1}_{self.s_id}"
 
                 # compile combined source code
